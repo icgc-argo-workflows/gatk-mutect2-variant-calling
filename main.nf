@@ -110,7 +110,10 @@ params.cpus = 2
 params.mem = 4
 
 params.download = [:]
-params.bqsr = [:]
+params.bqsr = [
+    'dbsnp_vcf_gz': 'NO_FILE',
+    'known_indels_sites_vcf_gzs': 'NO_FILE'
+]
 params.splitInterval
 params.mutect2 = [
     'germline_resource': 'NO_FILE',
@@ -139,8 +142,6 @@ bqsr_params = [
     'mem': params.mem,
     'ref_dict': params.ref_dict,
     'ref_fa': params.ref_fa,
-    'dbsnp_vcf_gz': params.dbsnp_vcf_gz,
-    'known_indels_sites_vcf_gzs': params.known_indels_sites_vcf_gzs,
     *:(params.bqsr ?: [:])
 ]
 

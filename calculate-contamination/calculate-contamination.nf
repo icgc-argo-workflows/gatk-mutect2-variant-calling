@@ -1,20 +1,20 @@
 #!/usr/bin/env nextflow
 nextflow.preview.dsl = 2
-name = 'broad-mutect2-variant-calling'
-short_name = 'broad-mutect2'
+name = 'gatk-calculate-contamination'
+short_name = 'contamination'
 version = '4.1.7.0-1.0-dev'
 
 
 /*
-  ========================================================================================
-                        ICGC-ARGO Broad Mutect2 Variant Calling Pipeline
-  ========================================================================================
+  ==============================================================================================
+                    GATK Calculate Contamination Nextflow Workflow
+  ==============================================================================================
   #### Homepage / Documentation
-  https://github.com/icgc-argo/broad-mutect2-variant-calling
+  https://github.com/icgc-argo/broad-mutect2-variant-calling/tree/master/calculate-contamination
   #### Authors
   Junjun Zhang @junjun-zhang <junjun.zhang@oicr.on.ca>
   Linda Xiang @lindaxiang <linda.xiang@oicr.on.ca>
-  ----------------------------------------------------------------------------------------
+  ----------------------------------------------------------------------------------------------
 
 Required Parameters (no default):
 --tumour_aln_seq                Aligned tumour sequence file
