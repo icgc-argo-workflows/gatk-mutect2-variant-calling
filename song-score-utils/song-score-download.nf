@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-nextflow.preview.dsl=2
+nextflow.preview.dsl = 2
 
 // processes resources
 params.song_cpus = 1

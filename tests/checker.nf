@@ -25,7 +25,19 @@ nextflow.preview.dsl = 2
 
 params.tumour_aln_analysis_id = ""
 params.normal_aln_analysis_id = ""
-params.files_to_upload = []
+params.ref_fa = "reference/tiny-grch38-chr11-530001-537000.fa"
+params.mutect2 = [
+  'germline_resource': 'reference/tiny-chr11-exac_common_3.hg38.vcf.gz'
+]
+params.gatherPileupSummaries = [
+  'ref_dict': 'reference/tiny-grch38-chr11-530001-537000.dict'
+]
+params.calculateContamination = [
+  'variants_for_contamination': 'reference/tiny-chr11-exac_common_3.hg38.vcf.gz'
+]
+params.filterAlignmentArtifacts = [
+    'bwa_mem_index_image': 'reference/tiny-grch38-chr11-530001-537000.fa.img'
+]
 params.api_token = ""
 params.song_url = ""
 params.score_url = ""

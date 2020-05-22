@@ -100,20 +100,31 @@ Upload Parameters (object):
 params.study_id = ""
 params.tumour_aln_analysis_id = ""
 params.normal_aln_analysis_id = ""
+params.ref_fa = "NO_FILE"
 params.api_token = ""
 params.song_url = ""
 params.score_url = ""
 params.cleanup = true
-params.dbsnp_vcf_gz = "NO_FILE"  # this needs to be updated
-params.known_indels_sites_vcf_gzs = []
 
 params.cpus = 2
 params.mem = 4
 
-download = [:]
-bqsr = [:]
-calculateContamination = [:]
-upload = [:]
+params.download = [:]
+params.bqsr = [:]
+params.mutect2 = [
+    'germline_resource': 'NO_FILE',
+    'pon': 'NO_FILE'
+]
+params.gatherPileupSummaries = [
+    'ref_dict': 'NO_FILE'
+]
+params.calculateContamination = [
+    'variants_for_contamination': 'NO_FILE'
+]
+params.filterAlignmentArtifacts = [
+    'bwa_mem_index_image': 'NO_FILE'
+]
+params.upload = [:]
 
 download_params = [
     'song_url': params.song_url,
@@ -135,8 +146,13 @@ bqsr_params = [
 mutect2_params = [
     'cpus': params.cpus,
     'mem': params.mem,
-    'germline_resource': ''
     *:(params.mutect2 ?: [:])
+]
+
+gatherPileupSummaries_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.gatherPileupSummaries ?: [:])
 ]
 
 calculateContamination_params = [
@@ -144,7 +160,12 @@ calculateContamination_params = [
     'mem': params.mem,
     'ref_dict': params.ref_dict,
     'ref_fa': params.ref_fa,
-    'variants_for_contamination': true,
+    *:(params.calculateContamination ?: [:])
+]
+
+filterAlignmentArtifacts_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
     *:(params.calculateContamination ?: [:])
 ]
 
@@ -168,10 +189,10 @@ include learnReadOrientationModel as learnROM from './modules/raw.githubusercont
 include mergeVcfs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.7.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
 include mergeMutectStats as mergeMS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.7.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
 include { getPileupSummaries as getPST; getPileupSummaries as getPSN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.7.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries'
-include gatherPileupSummaries as gatherPS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.7.0-2.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries'
+include gatherPileupSummaries as gatherPS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.7.0-2.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
 include calculateContamination as calCont from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 include filterMutectCalls as filterMC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.7.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls'
-include filterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.7.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts'
+include filterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.7.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts' params(filterAlignmentArtifacts_params)
 include cleanupWorkdir as cleanup from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
 
