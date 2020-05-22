@@ -158,18 +158,6 @@ mutect2_params = [
     *:(params.mutect2 ?: [:])
 ]
 
-gatherPileupSummaries_params = [
-    'cpus': params.cpus,
-    'mem': params.mem,
-    *:(params.gatherPileupSummaries ?: [:])
-]
-
-getPileupSummaries_params = [
-    'cpus': params.cpus,
-    'mem': params.mem,
-    *:(params.getPileupSummaries ?: [:])
-]
-
 calculateContamination_params = [
     'cpus': params.cpus,
     'mem': params.mem,
@@ -209,8 +197,6 @@ include mutect2 from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/g
 include learnReadOrientationModel as learnROM from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.7.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
 include mergeVcfs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.7.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
 include mergeMutectStats as mergeMS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.7.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
-include { getPileupSummaries as getPST; getPileupSummaries as getPSN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.7.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
-include gatherPileupSummaries as gatherPS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.7.0-2.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
 include calculateContamination as calCont from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 include filterMutectCalls as filterMC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.7.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
 include filterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.7.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts' params(filterAlignmentArtifacts_params)
@@ -252,12 +238,6 @@ workflow BroadMutect2 {
         // mergeVcfs
 
         // mergeMS
-
-        // getPST
-
-        // getPSN
-
-        // gatherPS
 
         // calCont
 
