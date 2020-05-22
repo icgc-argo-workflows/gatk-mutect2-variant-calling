@@ -111,6 +111,7 @@ params.mem = 4
 
 params.download = [:]
 params.bqsr = [:]
+params.splitInterval
 params.mutect2 = [
     'germline_resource': 'NO_FILE',
     'pon': 'NO_FILE'
@@ -143,9 +144,17 @@ bqsr_params = [
     *:(params.bqsr ?: [:])
 ]
 
+splitIntervals_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    'ref_fa': params.ref_fa,
+    *:(params.splitIntervals ?: [:])
+]
+
 mutect2_params = [
     'cpus': params.cpus,
     'mem': params.mem,
+    'ref_fa': params.ref_fa,
     *:(params.mutect2 ?: [:])
 ]
 
@@ -155,12 +164,24 @@ gatherPileupSummaries_params = [
     *:(params.gatherPileupSummaries ?: [:])
 ]
 
+getPileupSummaries_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.getPileupSummaries ?: [:])
+]
+
 calculateContamination_params = [
     'cpus': params.cpus,
     'mem': params.mem,
     'ref_dict': params.ref_dict,
     'ref_fa': params.ref_fa,
     *:(params.calculateContamination ?: [:])
+]
+
+filterMutectCalls_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.filterMutectCalls ?: [:])
 ]
 
 filterAlignmentArtifacts_params = [
@@ -183,15 +204,15 @@ upload_params = [
 
 include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr' params(bqsr_params)
-include splitIntervals as splitItv from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.7.0-2.0/tools/gatk-split-intervals/gatk-split-intervals'
+include splitIntervals as splitItv from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.7.0-2.0/tools/gatk-split-intervals/gatk-split-intervals' params(splitIntervals_params)
 include mutect2 from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.7.0-2.0/tools/gatk-mutect2/gatk-mutect2' params(sangerWxsVariantCaller_params)
 include learnReadOrientationModel as learnROM from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.7.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
 include mergeVcfs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.7.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
 include mergeMutectStats as mergeMS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.7.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
-include { getPileupSummaries as getPST; getPileupSummaries as getPSN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.7.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries'
+include { getPileupSummaries as getPST; getPileupSummaries as getPSN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.7.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
 include gatherPileupSummaries as gatherPS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.7.0-2.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
 include calculateContamination as calCont from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
-include filterMutectCalls as filterMC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.7.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls'
+include filterMutectCalls as filterMC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.7.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
 include filterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.7.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts' params(filterAlignmentArtifacts_params)
 include cleanupWorkdir as cleanup from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
