@@ -20,6 +20,10 @@ Required Parameters (no default):
 --study_id                              SONG study ID
 --tumour_aln_analysis_id                Tumour WGS sequencing_alignment SONG analysis ID
 --normal_aln_analysis_id                Normal WGS sequencing_alignment SONG analysis ID
+--tumour_aln_metadata                   Tumour WGS alignment metadata JSON file
+--tumour_aln_cram                       Tumour WGS aligned CRAM file (index file .crai is also required)
+--normal_aln_metadata                   Normal WGS alignment metadata JSON file
+--normal_aln_cram                       Normal WGS aligned CRAM file (index file .crai is also required)
 --ref_genome_fa                         Reference genome '.fa' file, secondary file ('.fa.fai') is expected to be under the same folder
 --sanger_ref_genome_tar                 Tarball containing reference genome files from the same genome build
 --sanger_vagrent_annot                  Tarball containing VAGrENT annotation reference
@@ -98,8 +102,17 @@ Upload Parameters (object):
 */
 
 params.study_id = ""
+
+// aligned seq will be downloaded from SONG/SCORE
 params.tumour_aln_analysis_id = ""
 params.normal_aln_analysis_id = ""
+
+// if provided local files will be used
+params.tumour_aln_metadata = "NO_FILE"
+params.tumour_aln_cram = "NO_FILE"
+params.normal_aln_metadata = "NO_FILE"
+params.normal_aln_cram = "NO_FILE"
+
 params.ref_fa = "NO_FILE"
 params.api_token = ""
 params.song_url = ""
@@ -216,15 +229,34 @@ def getSecondaryFiles(main_file, exts){  //this is kind of like CWL's secondary 
 workflow BroadMutect2 {
     take:
         study_id
+        ref_fa
         tumour_aln_analysis_id
         normal_aln_analysis_id
+        tumour_aln_metadata
+        tumour_aln_cram
+        normal_aln_metadata
+        normal_aln_cram
 
     main:
-        // download tumour aligned seq and metadata from song/score (analysis type: sequencing_alignment)
-        dnldT(study_id, tumour_aln_analysis_id)
+        local_mode = false
 
-        // download normal aligned seq and metadata from song/score (analysis type: sequencing_alignment)
-        dnldN(study_id, normal_aln_analysis_id)
+        if (tumour_aln_analysis_id && normal_aln_analysis_id) {
+            // download tumour aligned seq and metadata from song/score (analysis type: sequencing_alignment)
+            dnldT(study_id, tumour_aln_analysis_id)
+
+            // download normal aligned seq and metadata from song/score (analysis type: sequencing_alignment)
+            dnldN(study_id, normal_aln_analysis_id)
+        } else if (
+            tumour_aln_metadata != 'NO_FILE' && \
+            tumour_aln_cram != 'NO_FILE' && \
+            normal_aln_metadata != 'NO_FILE' && \
+            normal_aln_cram != 'NO_FILE'
+        ) {
+            local_mode = true
+        } else {
+            exit 1, "To download input aligned seq files from SONG/SCORE, please provide `params.tumour_aln_analysis_id` and `params.normal_aln_analysis_id`.\n" +
+                "Or please provide `params.tumour_aln_metadata`, `params.tumour_aln_cram`, `params.normal_aln_metadata` and `params.normal_aln_cram` to use local files as input."
+        }
 
         // BQSR Tumour
 
@@ -266,7 +298,12 @@ workflow BroadMutect2 {
 workflow {
     BroadMutect2(
         params.study_id,
+        params.ref_fa,
         params.tumour_aln_analysis_id,
-        params.normal_aln_analysis_id
+        params.normal_aln_analysis_id,
+        params.tumour_aln_metadata,
+        params.tumour_aln_cram,
+        params.normal_aln_metadata,
+        params.normal_aln_cram
     )
 }
