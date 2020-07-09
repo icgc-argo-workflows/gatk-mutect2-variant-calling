@@ -45,11 +45,11 @@ params.cpus = 1
 params.mem = 1  // GB
 params.cleanup = true
 
-include BroadMutect2 from "../main" params(params)
+include M2 from "../main" params(params)
 
 
 workflow {
-  BroadMutect2(
+  M2(
     params.study_id,
     params.tumour_aln_analysis_id,
     params.normal_aln_analysis_id

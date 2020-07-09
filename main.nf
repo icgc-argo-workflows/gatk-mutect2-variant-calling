@@ -1,16 +1,16 @@
 #!/usr/bin/env nextflow
 nextflow.preview.dsl = 2
-name = 'broad-mutect2-variant-calling'
-short_name = 'broad-mutect2'
+name = 'gatk-mutect2-variant-calling'
+short_name = 'gatk-mutect2'
 version = '4.1.7.0-1.0-dev'
 
 
 /*
 ========================================================================================
-                    ICGC-ARGO Broad Mutect2 Variant Calling Pipeline
+                    ICGC-ARGO GATK Mutect2 Variant Calling Workflow
 ========================================================================================
 #### Homepage / Documentation
-https://github.com/icgc-argo/broad-mutect2-variant-calling
+https://github.com/icgc-argo/gatk-mutect2-variant-calling
 #### Authors
 Junjun Zhang @junjun-zhang <junjun.zhang@oicr.on.ca>
 Linda Xiang @lindaxiang <linda.xiang@oicr.on.ca>
@@ -226,7 +226,7 @@ def getSecondaryFiles(main_file, exts){  //this is kind of like CWL's secondary 
 }
 
 
-workflow BroadMutect2 {
+workflow M2 {
     take:
         study_id
         ref_fa
@@ -296,7 +296,7 @@ workflow BroadMutect2 {
 
 
 workflow {
-    BroadMutect2(
+    M2(
         params.study_id,
         params.ref_fa,
         params.tumour_aln_analysis_id,

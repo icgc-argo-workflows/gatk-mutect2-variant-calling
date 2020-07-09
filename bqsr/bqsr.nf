@@ -9,7 +9,7 @@ version = '4.1.7.0-1.0-dev'
                 GATK Base Quality Score Recalibration Nextflow Workflow
   ========================================================================================
   #### Homepage / Documentation
-  https://github.com/icgc-argo/broad-mutect2-variant-calling/tree/master/bqsr
+  https://github.com/icgc-argo/gatk-mutect2-variant-calling/tree/master/bqsr
   #### Authors
   Junjun Zhang @junjun-zhang <junjun.zhang@oicr.on.ca>
   Linda Xiang @lindaxiang <linda.xiang@oicr.on.ca>

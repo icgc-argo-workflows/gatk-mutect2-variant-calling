@@ -10,7 +10,7 @@ version = '4.1.7.0-1.0-dev'
                     GATK Calculate Contamination Nextflow Workflow
   ==============================================================================================
   #### Homepage / Documentation
-  https://github.com/icgc-argo/broad-mutect2-variant-calling/tree/master/calculate-contamination
+  https://github.com/icgc-argo/gatk-mutect2-variant-calling/tree/master/calculate-contamination
   #### Authors
   Junjun Zhang @junjun-zhang <junjun.zhang@oicr.on.ca>
   Linda Xiang @lindaxiang <linda.xiang@oicr.on.ca>
