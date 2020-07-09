@@ -2,7 +2,7 @@
 nextflow.preview.dsl = 2
 name = 'gatk-mutect2-variant-calling'
 short_name = 'gatk-mutect2'
-version = '4.1.7.0-1.0-dev'
+version = '4.1.8.0-1.0-dev'
 
 
 /*
@@ -206,14 +206,14 @@ upload_params = [
 
 include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr' params(bqsr_params)
-include splitIntervals as splitItv from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.7.0-2.0/tools/gatk-split-intervals/gatk-split-intervals' params(splitIntervals_params)
-include mutect2 from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.7.0-2.0/tools/gatk-mutect2/gatk-mutect2' params(sangerWxsVariantCaller_params)
-include learnReadOrientationModel as learnROM from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.7.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
-include mergeVcfs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.7.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
-include mergeMutectStats as mergeMS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.7.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
+include splitIntervals as splitItv from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.8.0-2.0/tools/gatk-split-intervals/gatk-split-intervals' params(splitIntervals_params)
+include mutect2 from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.0/tools/gatk-mutect2/gatk-mutect2' params(sangerWxsVariantCaller_params)
+include learnReadOrientationModel as learnROM from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
+include mergeVcfs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
+include mergeMutectStats as mergeMS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
 include calculateContamination as calCont from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
-include filterMutectCalls as filterMC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.7.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
-include filterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.7.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts' params(filterAlignmentArtifacts_params)
+include filterMutectCalls as filterMC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
+include filterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.8.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts' params(filterAlignmentArtifacts_params)
 include cleanupWorkdir as cleanup from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
 

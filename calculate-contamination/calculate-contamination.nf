@@ -2,7 +2,7 @@
 nextflow.preview.dsl = 2
 name = 'gatk-calculate-contamination'
 short_name = 'contamination'
-version = '4.1.7.0-1.0-dev'
+version = '4.1.8.0-1.0-dev'
 
 
 /*
@@ -32,9 +32,9 @@ params.mem = 4
 
 // Include all modules and pass params
 
-include { getPileupSummaries as getPST; getPileupSummaries as getPSN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.7.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
-include gatherPileupSummaries as gatherPS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.7.0-2.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
-include calculateContamination as calCont from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.7.0-2.0/tools/gatk-calculate-contamination/gatk-calculate-contamination'
+include { getPileupSummaries as getPST; getPileupSummaries as getPSN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.8.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
+include gatherPileupSummaries as gatherPS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.8.0-2.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
+include calculateContamination as calCont from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-2.0/tools/gatk-calculate-contamination/gatk-calculate-contamination'
 
 def getSecondaryFiles(main_file, exts){  //this is kind of like CWL's secondary files
     def all_files = []
