@@ -23,8 +23,8 @@ Required Parameters (no default):
 --sequence_group_interval       intervals used to perform scattered execution
 */
 
+params.aln_seq = "NO_FILE"
 params.ref_fa = "NO_FILE"
-params.ref_dict = "NO_FILE"
 params.dbsnp_vcf_gz = "NO_FILE"
 params.known_indels_sites_vcf_gzs = []
 params.sequence_group_interval = []
@@ -33,30 +33,32 @@ params.mem = 4
 
 
 // Include all modules and pass params
-include BaseRecalibrator as recalibrate from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-base-recalibrator.4.1.8.0-1.0/tools/gatk-base-recalibrator/gatk-base-recalibrator'
+include {BaseRecalibrator as baseRC; getSecondaryFiles} from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-base-recalibrator.4.1.8.0-1.0/tools/gatk-base-recalibrator/gatk-base-recalibrator'
 include GatherBqsrReports as gatherBS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-bqsr-reports.4.1.8.0-1.0/tools/gatk-gather-bqsr-reports/gatk-gather-bqsr-reports'
 include ApplyBQSR as applyBQSR from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-apply-bqsr.4.1.8.0-1.0/tools/gatk-apply-bqsr/gatk-apply-bqsr'
 include GatherBamFiles as gatherBAMs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-bam-files.4.1.8.0-1.0/tools/gatk-gather-bam-files/gatk-gather-bam-files'
 
 
-def getSecondaryFiles(main_file, exts){  //this is kind of like CWL's secondary files
-    def all_files = []
-    for (ext in exts) {
-        all_files.add(main_file + ext)
-    }
-    return all_files
-}
-
-
 workflow bqsr {
     take:
-        sequence_group_interval
         aln_seq
-
+        aln_seq_idx
+        ref_genome_fa
+        ref_genome_fa_2nd  // secondary files: .fai and .dict
+        known_sites_vcfs
+        known_sites_vcf_indices
+        sequence_group_interval
 
     main:
         // BaseRecalibrator
-        recalibrate()
+        baseRC(
+            aln_seq,
+            aln_seq_idx,
+            ref_genome_fa_2nd.collect(),
+            known_sites_vcfs.collect(),
+            known_sites_vcf_indices.collect(),
+            sequence_group_interval
+        )
 
         // GatherBqsrReports
 
@@ -64,12 +66,6 @@ workflow bqsr {
 
         // GatherBamFiles
 
-}
-
-
-workflow {
-    bqsr(
-        params.sequence_group_interval,
-        params.aln_seq
-    )
+    emit:
+        recalibration_report = baseRC.out.recalibration_report
 }
