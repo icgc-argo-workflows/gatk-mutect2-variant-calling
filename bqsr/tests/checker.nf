@@ -34,7 +34,7 @@ params.mem = 4
 include {bqsr; getSecondaryFiles} from '../bqsr'
 
 Channel
-  .fromPath(getSecondaryFiles(params.aln_seq, ['crai']), checkIfExists: true)
+  .fromPath(getSecondaryFiles(params.aln_seq, ['bai']), checkIfExists: true)
   .set { seq_crai_ch }
 
 Channel
@@ -54,7 +54,7 @@ workflow {
       ref_genome_fai_ch.collect(),  // secondary files: .fai and .dict
       known_sites_vcfs.collect(),
       known_sites_indices.collect(),
-      Channel.fromPath(params.known_sites_vcfs)
+      Channel.fromPath(params.sequence_group_interval)
     )
 
   publish:
