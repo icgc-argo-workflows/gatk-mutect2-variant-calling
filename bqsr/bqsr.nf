@@ -62,11 +62,31 @@ workflow bqsr {
         )
 
         // GatherBqsrReports
+        gatherBS(
+            baseRC.out.recalibration_report.collect(),
+            'bqsr_report.csv'
+        )
 
         // ApplyBQSR
+        applyBQSR(
+            aln_seq,
+            aln_seq_idx,
+            ref_genome_fa,
+            ref_genome_fa_2nd.collect(),
+            gatherBS.out.bqsr_report,
+            sequence_group_interval,
+            'recalibrated_bam'
+        )
 
         // GatherBamFiles
+        gatherBAMs(
+            applyBQSR.out.recalibrated_bam.collect(),
+            'recalibrated_final_bam',
+            'null'
+        )
 
     emit:
-        recalibration_report = baseRC.out.recalibration_report
+        bqsr_bam = gatherBAMs.out.merged_bam
+        bqsr_bam_bai = gatherBAMs.out.merged_bam_bai
+        bqsr_bam_md5 = gatherBAMs.out.merged_bam_md5
 }
