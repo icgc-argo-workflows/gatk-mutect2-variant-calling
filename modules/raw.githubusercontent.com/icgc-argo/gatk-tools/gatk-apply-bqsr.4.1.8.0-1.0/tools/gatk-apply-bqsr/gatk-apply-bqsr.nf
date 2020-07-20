@@ -65,20 +65,27 @@ process gatkApplyBQSR {
     val output_bam_basename
 
   output:
-    path "${output_bam_basename}.bam", emit: recalibrated_bam
-    path "${output_bam_basename}.bam.bai", emit: recalibrated_bam_bai
-    path "${output_bam_basename}.bam.md5", emit: recalibrated_bam_md5
+    path "${arg_output}.bam", emit: recalibrated_bam
+    path "${arg_output}.bam.bai", emit: recalibrated_bam_bai
+    path "${arg_output}.bam.md5", emit: recalibrated_bam_md5
 
   script:
-    arg_interval_file = interval_file.name == 'NO_FILE' ? "" : "-i ${interval_file}"
+    if (interval_file.name == 'NO_FILE') {
+      arg_interval_file = ""
+      arg_output = output_bam_basename
+    } else {
+      arg_interval_file = "-i ${interval_file}"
+      interval_prefix = interval_file.name.split("-").toList()[0]
+      arg_output = "${interval_prefix}.${output_bam_basename}"
+    }
 
     """
     gatk-apply-bqsr.py -s ${seq} \
                       -r ${ref_genome_fa} \
                       -m ${(int) (params.mem * 1000)} \
                       -c ${recalibration_report} \
-                      -o ${output_bam_basename} ${arg_interval_file}
+                      -o ${arg_output} ${arg_interval_file}
 
-    ln -s ${output_bam_basename}.bai ${output_bam_basename}.bam.bai
+    ln -s ${arg_output}.bai ${arg_output}.bam.bai
     """
 }
