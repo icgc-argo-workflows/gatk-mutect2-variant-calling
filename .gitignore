@@ -72,6 +72,7 @@ outdir
 results
 my-results
 out
+output
 reports
 remote_reports
 params.json
