@@ -36,7 +36,7 @@ include gatkSplitIntervals as splitItvls from './modules/raw.githubusercontent.c
 
 
 Channel
-  .fromPath(getSecondaryFiles(params.aln_seq, ['bai']), checkIfExists: true)
+  .fromPath(getSecondaryFiles(params.aln_seq, ['bai', 'crai']))
   .set { seq_crai_ch }
 
 Channel
