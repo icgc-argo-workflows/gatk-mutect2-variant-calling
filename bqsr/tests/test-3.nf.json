@@ -1,0 +1,6 @@
+{
+  "aln_seq": "data/HCC1143-mini-T/8f879c15-14da-593d-bb76-db866f81ab3a.6.20190927.wgs.grch38.bam",
+  "ref_genome_fa": "reference/tiny-grch38-chr11-530001-537000.fa",
+  "known_sites_vcfs": ["data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"],
+  "scatter_count": 3
+}

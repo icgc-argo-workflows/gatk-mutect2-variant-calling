@@ -32,9 +32,11 @@ params.cpus = 2
 params.mem = 4
 
 include {bqsr; getSecondaryFiles} from '../bqsr'
+include gatkSplitIntervals as splitItvls from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.4.1-1.0/tools/gatk-split-intervals/gatk-split-intervals'
+
 
 Channel
-  .fromPath(getSecondaryFiles(params.aln_seq, ['bai']), checkIfExists: true)
+  .fromPath(getSecondaryFiles(params.aln_seq, ['bai', 'crai']))
   .set { seq_crai_ch }
 
 Channel
@@ -45,18 +47,28 @@ known_sites_vcfs = Channel.fromPath(params.known_sites_vcfs)
 
 known_sites_indices = known_sites_vcfs.flatMap { v -> getSecondaryFiles(v, ['tbi']) }
 
+
 workflow {
   main:
+    if (params.sequence_group_interval.size() == 0) {
+        splitItvls(params.scatter_count, file(params.ref_genome_fa), ref_genome_fai_ch.collect(), file('NO_FILE'))
+        interval_files = splitItvls.out.interval_files
+    } else {
+       Channel.fromPath(params.sequence_group_interval).set{ interval_files }
+    }
+
     bqsr(
       file(params.aln_seq),
-      seq_crai_ch,
+      seq_crai_ch.collect(),
       file(params.ref_genome_fa),
       ref_genome_fai_ch.collect(),  // secondary files: .fai and .dict
       known_sites_vcfs.collect(),
       known_sites_indices.collect(),
-      Channel.fromPath(params.sequence_group_interval)
+      interval_files.flatten()
     )
 
   publish:
-    bqsr.out.recalibration_report to: "output", mode: 'symlink', overwrite: true
+    bqsr.out.bqsr_bam to: "output", mode: 'symlink', overwrite: true
+    bqsr.out.bqsr_bam_bai to: "output", mode: 'symlink', overwrite: true
+    bqsr.out.bqsr_bam_md5 to: "output", mode: 'symlink', overwrite: true
 }
