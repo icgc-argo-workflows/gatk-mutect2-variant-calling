@@ -258,11 +258,11 @@ workflow M2 {
                 "Or please provide `params.tumour_aln_metadata`, `params.tumour_aln_cram`, `params.normal_aln_metadata` and `params.normal_aln_cram` to use local files as input."
         }
 
+        // splitInterval
+
         // BQSR Tumour
 
         // BQSR Normal
-
-        // splitInterval
 
         // Mutect2
 
