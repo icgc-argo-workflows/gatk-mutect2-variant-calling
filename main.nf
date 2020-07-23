@@ -113,6 +113,9 @@ params.tumour_aln_cram = "NO_FILE"
 params.normal_aln_metadata = "NO_FILE"
 params.normal_aln_cram = "NO_FILE"
 
+params.ref_genome_fa = "NO_FILE"
+params.scatter_count = 9
+
 params.ref_fa = "NO_FILE"
 params.api_token = ""
 params.song_url = ""
@@ -127,7 +130,7 @@ params.bqsr = [
     'dbsnp_vcf_gz': 'NO_FILE',
     'known_indels_sites_vcf_gzs': 'NO_FILE'
 ]
-params.splitInterval
+
 params.mutect2 = [
     'germline_resource': 'NO_FILE',
     'pon': 'NO_FILE'
@@ -259,6 +262,13 @@ workflow M2 {
         }
 
         // splitInterval
+        splitItvls(
+            params.scatter_count,
+            ref_fa,
+            ref_genome_fai_ch.collect(),
+            file('NO_FILE')
+        )
+
 
         // BQSR Tumour
 
