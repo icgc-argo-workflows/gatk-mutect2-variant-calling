@@ -288,6 +288,17 @@ workflow M2 {
         )
 
         // Mutect2
+        Mutect2(
+            bqsrT.out.bqsr_bam,
+            bqsrT.out.bqsr_bam_bai,
+            bqsrN.out.bqsr_bam,
+            bqsrN.out.bqsr_bam_bai,
+            ref_fa,
+            ref_fa_2nd,
+            known_sites_vcfs,
+            known_sites_indices,
+            splitItvls.out.interval_files.flatten()
+        )
 
         // learnROM
 
