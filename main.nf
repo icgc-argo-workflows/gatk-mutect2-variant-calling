@@ -108,11 +108,13 @@ params.tumour_aln_cram = "NO_FILE"
 params.normal_aln_metadata = "NO_FILE"
 params.normal_aln_cram = "NO_FILE"
 
-params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
+// params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
+params.ref_fa = "/home/ubuntu/sanger-wxs-jobs/reference/GRCh38_hla_decoy_ebv/GRCh38_hla_decoy_ebv.fa"
 params.scatter_count = 30
 
 params.known_sites_vcfs = [
-    "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
+    // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
+    "/home/ubuntu/gatk-mutect2-variant-calling/bqsr/tests/af-only-gnomad.hg38.vcf.gz"
 ]
 
 params.api_token = ""
@@ -225,7 +227,7 @@ workflow M2 {
         ref_fa
         ref_fa_2nd
         known_sites_vcfs
-        known_sites_vcf_indices
+        known_sites_indices
         tumour_aln_analysis_id
         normal_aln_analysis_id
         tumour_aln_metadata
@@ -271,7 +273,7 @@ workflow M2 {
             ref_fa_2nd,
             known_sites_vcfs,
             known_sites_indices,
-            interval_files.flatten()
+            splitItvls.out.interval_files.flatten()
         )
 
         // BQSR Normal
@@ -282,7 +284,7 @@ workflow M2 {
             ref_fa_2nd,
             known_sites_vcfs,
             known_sites_indices,
-            interval_files.flatten()
+            splitItvls.out.interval_files.flatten()
         )
 
         // Mutect2
@@ -319,7 +321,7 @@ workflow M2 {
 workflow {
     known_sites_vcfs = Channel.fromPath(params.known_sites_vcfs)
 
-    known_sites_indices = known_sites_vcfs.flatMap { v -> getSecondaryFiles(v, ['tbi']) }
+    known_sites_indices = known_sites_vcfs.flatMap { v -> getSec(v, ['tbi']) }
 
     M2(
         params.study_id,
