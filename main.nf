@@ -25,11 +25,6 @@ Required Parameters (no default):
 --normal_aln_metadata                   Normal WGS alignment metadata JSON file
 --normal_aln_cram                       Normal WGS aligned CRAM file (index file .crai is also required)
 --ref_fa                                Reference genome '.fa' file, secondary files ('.fa.fai', '.dict') are expected to be under the same folder
---sanger_ref_genome_tar                 Tarball containing reference genome files from the same genome build
---sanger_vagrent_annot                  Tarball containing VAGrENT annotation reference
---sanger_ref_cnv_sv_tar                 Tarball containing CNV/SV reference
---sanger_ref_snv_indel_tar              Tarball containing SNV/Indel reference
---sanger_qcset_tar                      Tarball containing QC Genotype reference
 --song_url                              SONG server URL
 --score_url                             SCORE server URL
 --api_token                             SONG/SCORE API Token
@@ -115,6 +110,10 @@ params.normal_aln_cram = "NO_FILE"
 
 params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
 params.scatter_count = 30
+
+params.known_sites_vcfs = [
+    "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
+]
 
 params.api_token = ""
 params.song_url = ""
@@ -225,6 +224,8 @@ workflow M2 {
         study_id
         ref_fa
         ref_fa_2nd
+        known_sites_vcfs
+        known_sites_vcf_indices
         tumour_aln_analysis_id
         normal_aln_analysis_id
         tumour_aln_metadata
@@ -263,8 +264,26 @@ workflow M2 {
 
 
         // BQSR Tumour
+        bqsrT(
+            dnldT.out.files.flatten().first(),  // aln seq
+            dnldT.out.files.flatten().last(),   // aln idx
+            ref_fa,
+            ref_fa_2nd,
+            known_sites_vcfs,
+            known_sites_indices,
+            interval_files.flatten()
+        )
 
         // BQSR Normal
+        bqsrN(
+            dnldN.out.files.flatten().first(),  // aln seq
+            dnldN.out.files.flatten().last(),   // aln idx
+            ref_fa,
+            ref_fa_2nd,
+            known_sites_vcfs,
+            known_sites_indices,
+            interval_files.flatten()
+        )
 
         // Mutect2
 
@@ -298,10 +317,16 @@ workflow M2 {
 
 
 workflow {
+    known_sites_vcfs = Channel.fromPath(params.known_sites_vcfs)
+
+    known_sites_indices = known_sites_vcfs.flatMap { v -> getSecondaryFiles(v, ['tbi']) }
+
     M2(
         params.study_id,
         file(params.ref_fa),
         Channel.fromPath(getSec(params.ref_fa, ['^dict', 'fai']), checkIfExists: true).collect(),
+        known_sites_vcfs.collect(),
+        known_sites_indices.collect(),
         params.tumour_aln_analysis_id,
         params.normal_aln_analysis_id,
         params.tumour_aln_metadata,

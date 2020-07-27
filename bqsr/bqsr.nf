@@ -25,8 +25,7 @@ Required Parameters (no default):
 
 params.aln_seq = "NO_FILE"
 params.ref_fa = "NO_FILE"
-params.dbsnp_vcf_gz = "NO_FILE"
-params.known_indels_sites_vcf_gzs = []
+params.known_sites_vcfs = []
 params.sequence_group_interval = []
 params.cpus = 2
 params.mem = 4
