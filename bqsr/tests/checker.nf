@@ -67,8 +67,4 @@ workflow {
       interval_files.flatten()
     )
 
-  publish:
-    bqsr.out.bqsr_bam to: "output", mode: 'symlink', overwrite: true
-    bqsr.out.bqsr_bam_bai to: "output", mode: 'symlink', overwrite: true
-    bqsr.out.bqsr_bam_md5 to: "output", mode: 'symlink', overwrite: true
 }
