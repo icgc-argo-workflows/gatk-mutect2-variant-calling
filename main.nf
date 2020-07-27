@@ -24,7 +24,7 @@ Required Parameters (no default):
 --tumour_aln_cram                       Tumour WGS aligned CRAM file (index file .crai is also required)
 --normal_aln_metadata                   Normal WGS alignment metadata JSON file
 --normal_aln_cram                       Normal WGS aligned CRAM file (index file .crai is also required)
---ref_genome_fa                         Reference genome '.fa' file, secondary file ('.fa.fai') is expected to be under the same folder
+--ref_fa                                Reference genome '.fa' file, secondary files ('.fa.fai', '.dict') are expected to be under the same folder
 --sanger_ref_genome_tar                 Tarball containing reference genome files from the same genome build
 --sanger_vagrent_annot                  Tarball containing VAGrENT annotation reference
 --sanger_ref_cnv_sv_tar                 Tarball containing CNV/SV reference
@@ -101,11 +101,11 @@ Upload Parameters (object):
 
 */
 
-params.study_id = ""
+params.study_id = "PTC-SA"
 
 // aligned seq will be downloaded from SONG/SCORE
-params.tumour_aln_analysis_id = ""
-params.normal_aln_analysis_id = ""
+params.tumour_aln_analysis_id = "8e110d35-63e7-4ff8-910d-3563e70ff82b"
+params.normal_aln_analysis_id = "14cb776f-0624-4ca7-8b77-6f0624bca75f"
 
 // if provided local files will be used
 params.tumour_aln_metadata = "NO_FILE"
@@ -113,10 +113,9 @@ params.tumour_aln_cram = "NO_FILE"
 params.normal_aln_metadata = "NO_FILE"
 params.normal_aln_cram = "NO_FILE"
 
-params.ref_genome_fa = "NO_FILE"
-params.scatter_count = 9
+params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
+params.scatter_count = 30
 
-params.ref_fa = "NO_FILE"
 params.api_token = ""
 params.song_url = ""
 params.score_url = ""
@@ -126,6 +125,7 @@ params.cpus = 2
 params.mem = 4
 
 params.download = [:]
+
 params.bqsr = [
     'dbsnp_vcf_gz': 'NO_FILE',
     'known_indels_sites_vcf_gzs': 'NO_FILE'
@@ -147,8 +147,8 @@ params.filterAlignmentArtifacts = [
 params.upload = [:]
 
 download_params = [
-    'song_url': params.song_url,
-    'score_url': params.score_url,
+    'song_url': params.song_url ?: 'https://song.rdpc.cancercollaboratory.org',
+    'score_url': params.score_url ?: 'https://score.rdpc.cancercollaboratory.org',
     'api_token': params.api_token,
     *:(params.download ?: [:])
 ]
@@ -207,10 +207,10 @@ upload_params = [
 
 // Include all modules and pass params
 
-include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download'
+include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
 include gatkSplitIntervals as splitItvls from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.4.1-1.0/tools/gatk-split-intervals/gatk-split-intervals'
-include gatkMutect2 as Mutect2 from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.0/tools/gatk-mutect2/gatk-mutect2'
+include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.0/tools/gatk-mutect2/gatk-mutect2'
 include gatkLearnReadOrientationModel as learnROM from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
 include gatkMergeVcfs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
 include gatkMergeMutectStats as mergeMS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
@@ -220,19 +220,11 @@ include gatkMergeMutectStats as mergeMS from './modules/raw.githubusercontent.co
 include cleanupWorkdir as cleanup from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
 
-def getSecondaryFiles(main_file, exts){  //this is kind of like CWL's secondary files
-    def all_files = []
-    for (ext in exts) {
-        all_files.add(main_file + ext)
-    }
-    return all_files
-}
-
-
 workflow M2 {
     take:
         study_id
         ref_fa
+        ref_fa_2nd
         tumour_aln_analysis_id
         normal_aln_analysis_id
         tumour_aln_metadata
@@ -265,7 +257,7 @@ workflow M2 {
         splitItvls(
             params.scatter_count,
             ref_fa,
-            ref_genome_fai_ch.collect(),
+            ref_fa_2nd,
             file('NO_FILE')
         )
 
@@ -308,7 +300,8 @@ workflow M2 {
 workflow {
     M2(
         params.study_id,
-        params.ref_fa,
+        file(params.ref_fa),
+        Channel.fromPath(getSec(params.ref_fa, ['^dict', 'fai']), checkIfExists: true).collect(),
         params.tumour_aln_analysis_id,
         params.normal_aln_analysis_id,
         params.tumour_aln_metadata,
