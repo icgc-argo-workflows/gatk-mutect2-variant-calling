@@ -86,7 +86,7 @@ workflow calculateContaminationWf {
             Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['fai', '^dict']), checkIfExists: true).collect(),
             file(variants_resources),
             Channel.fromPath(getSecondaryFiles(variants_resources, ['tbi']), checkIfExists: true).collect(),
-            Channel.fromPath(interval_files)
+            interval_files.flatten()
         )
 
         // gatherPS
@@ -104,7 +104,7 @@ workflow calculateContaminationWf {
                 Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['fai', '^dict']), checkIfExists: true).collect(),
                 file(variants_resources),
                 Channel.fromPath(getSecondaryFiles(variants_resources, ['tbi']), checkIfExists: true).collect(),
-                Channel.fromPath(interval_files)
+                interval_files.flatten()
             )
 
             // gatherPSM
@@ -141,7 +141,7 @@ workflow {
         params.match_aln_seq,
         params.ref_genome_fa,
         params.variants_resources,
-        params.interval_files,
+        Channel.fromPath(params.interval_files),
         params.tumour_normal
     )
 }

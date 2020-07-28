@@ -54,6 +54,7 @@ process gatkGetPileupSummaries {
   container "quay.io/icgc-argo/gatk-get-pileup-summaries:gatk-get-pileup-summaries.${params.container_version ?: version}"
   cpus params.cpus
   memory "${params.mem} GB"
+  publishDir "output/getPileupSummaries"
 
   input:
     path seq

@@ -34,16 +34,29 @@ params.tumour_normal = ""
 params.cpus = 2
 params.mem = 4
 
-include {calculateContaminationWf as calCont} from '../calculate-contamination'
+include { calculateContaminationWf as calCont; getSecondaryFiles } from '../calculate-contamination'
+include { gatkSplitIntervals as splitItvls } from '../modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.4.1-1.0/tools/gatk-split-intervals/gatk-split-intervals'
+
+Channel
+  .fromPath(getSecondaryFiles(params.ref_genome_fa, ['^dict', 'fai']), checkIfExists: true)
+  .set { ref_genome_fai_ch }
 
 workflow {
   main:
+
+    if (params.interval_files.size() == 0) {
+        splitItvls(params.scatter_count, file(params.ref_genome_fa), ref_genome_fai_ch.collect(), file('NO_FILE'))
+        interval_files = splitItvls.out.interval_files
+    } else {
+        interval_files = Channel.fromPath(params.interval_files)
+    }
+
     calCont(
       params.aln_seq,
       params.match_aln_seq,
       params.ref_genome_fa,
       params.variants_resources,
-      params.interval_files,
+      interval_files,
       params.tumour_normal
     )
 }
