@@ -37,19 +37,30 @@ params.tumour_normal = ""
 
 params.getPileupSummaries = [:]
 params.gatherPileupSummaries = [:]
+params.calculateContamination = [:]
 
 getPileupSummaries_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
     *:(params.getPileupSummaries ?: [:]) 
 ]
 
 gatherPileupSummaries_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
     *:(params.gatherPileupSummaries ?: [:]) 
+]
+
+calculateContamination_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.calculateContamination ?: [:]) 
 ]
 
 // Include all modules and pass params
 include { gatkGetPileupSummaries as getPS; gatkGetPileupSummaries as getPSM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.8.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
 include { gatkGatherPileupSummaries as gatherPS; gatkGatherPileupSummaries as gatherPSM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.8.0-2.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
-include { gatkCalculateContamination as calCont } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-2.0/tools/gatk-calculate-contamination/gatk-calculate-contamination'
+include { gatkCalculateContamination as calCont } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-2.0/tools/gatk-calculate-contamination/gatk-calculate-contamination' params(calculateContamination_params)
 
 
 def getSecondaryFiles(main_file, exts){  //this is kind of like CWL's secondary files
