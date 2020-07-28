@@ -1,0 +1,10 @@
+{
+  "aln_seq": "data/HCC1143_BL-mini-N/cfa409d0-3236-5f07-8634-a2c0de74c8f2.5.20190927.wgs.grch38.bam",
+  "ref_genome_fa": "reference/tiny-grch38-chr11-530001-537000.fa",
+  "variants_resources": "reference/tiny-chr11-exac_common_3.hg38.vcf.gz",
+  "interval_files": [
+    "data/0001-scattered.interval_list",
+    "data/0002-scattered.interval_list"
+  ],
+  "tumour_normal": "normal"
+}

@@ -23,7 +23,7 @@
  */
 
 nextflow.preview.dsl = 2
-version = '4.1.8.0-1.0'
+version = '4.1.8.0-2.0'
 
 params.seq = "NO_FILE"
 params.ref_genome_fa = "NO_FILE"
@@ -65,16 +65,16 @@ process gatkGetPileupSummaries {
     path interval_file
 
   output:
-    path "*.pileups.table", emit: pileups_table
+    path "*.pileups_metrics.txt", emit: pileups_metrics
 
   script:
     arg_ref_genome_fa = ref_genome_fa.name == 'NO_FILE' ? "" : "-R ${ref_genome_fa}"
-
+    arg_interval_file = interval_file.name == 'NO_FILE' ? "" : "-L ${interval_file}"
     """
     gatk-get-pileup-summaries.py -I ${seq} \
                       -V ${variants_resources} \
-                      -L ${interval_file} \
+                      ${arg_interval_file} \
                       -j ${(int) (params.mem * 1000)} \
-                      -O ${seq}.pileups.table ${arg_ref_genome_fa}
+                      ${arg_ref_genome_fa}
     """
 }
