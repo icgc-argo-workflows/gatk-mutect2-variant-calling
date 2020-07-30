@@ -80,7 +80,7 @@ workflow bqsr {
         // GatherBamFiles
         gatherBAMs(
             applyBQSR.out.recalibrated_bam.collect(),
-            'recalibrated_final_bam',
+            "${UUID.randomUUID().toString()}.recalibrated_final_bam",
             'null'
         )
 
