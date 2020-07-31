@@ -237,7 +237,7 @@ workflow M2 {
 
     main:
         local_mode = false
-        Channel.fromPath(interval_files, checkIfExists=True).set{ interval_files_ch }
+        Channel.fromPath(interval_files, checkIfExists: true).set{ interval_files_ch }
 
         if (tumour_aln_analysis_id && normal_aln_analysis_id) {
             // download tumour aligned seq and metadata from song/score (analysis type: sequencing_alignment)
