@@ -110,7 +110,7 @@ params.normal_aln_cram = "NO_FILE"
 
 // params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
 params.ref_fa = "/home/ubuntu/sanger-wxs-jobs/reference/GRCh38_hla_decoy_ebv/GRCh38_hla_decoy_ebv.fa"
-params.scatter_count = 30
+params.interval_files = ""
 
 params.known_sites_vcfs = [
     // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
@@ -210,7 +210,6 @@ upload_params = [
 
 include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
-include gatkSplitIntervals as splitItvls from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.4.1-1.0/tools/gatk-split-intervals/gatk-split-intervals'
 include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.0/tools/gatk-mutect2/gatk-mutect2'
 include gatkLearnReadOrientationModel as learnROM from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
 include gatkMergeVcfs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
@@ -234,9 +233,11 @@ workflow M2 {
         tumour_aln_cram
         normal_aln_metadata
         normal_aln_cram
+        interval_files
 
     main:
         local_mode = false
+        Channel.fromPath(interval_files, checkIfExists=True).set{ interval_files_ch }
 
         if (tumour_aln_analysis_id && normal_aln_analysis_id) {
             // download tumour aligned seq and metadata from song/score (analysis type: sequencing_alignment)
@@ -256,15 +257,6 @@ workflow M2 {
                 "Or please provide `params.tumour_aln_metadata`, `params.tumour_aln_cram`, `params.normal_aln_metadata` and `params.normal_aln_cram` to use local files as input."
         }
 
-        // splitInterval
-        splitItvls(
-            params.scatter_count,
-            ref_fa,
-            ref_fa_2nd,
-            file('NO_FILE')
-        )
-
-
         // BQSR Tumour
         bqsrT(
             dnldT.out.files.flatten().first(),  // aln seq
@@ -273,7 +265,7 @@ workflow M2 {
             ref_fa_2nd,
             known_sites_vcfs,
             known_sites_indices,
-            splitItvls.out.interval_files.flatten()
+            interval_files_ch.flatten()
         )
 
         // BQSR Normal
@@ -284,7 +276,7 @@ workflow M2 {
             ref_fa_2nd,
             known_sites_vcfs,
             known_sites_indices,
-            splitItvls.out.interval_files.flatten()
+            interval_files_ch.flatten()
         )
 
         // Mutect2
@@ -297,7 +289,7 @@ workflow M2 {
             ref_fa_2nd,
             known_sites_vcfs,
             known_sites_indices,
-            splitItvls.out.interval_files.flatten()
+            interval_files_ch.flatten()
         )
 
         // learnROM
@@ -345,6 +337,7 @@ workflow {
         params.tumour_aln_metadata,
         params.tumour_aln_cram,
         params.normal_aln_metadata,
-        params.normal_aln_cram
+        params.normal_aln_cram,
+        params.interval_files
     )
 }
