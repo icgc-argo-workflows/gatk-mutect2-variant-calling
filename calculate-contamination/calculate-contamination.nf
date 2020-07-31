@@ -24,50 +24,135 @@ Required Parameters (no default):
 
 */
 
-params.ref_fa = "NO_FILE"
-params.known_variants = "NO_FILE"
 params.cpus = 2
 params.mem = 4
 
 
-// Include all modules and pass params
+params.aln_seq = "NO_FILE"
+params.match_aln_seq = "NO_FILE"
+params.ref_genome_fa = "NO_FILE"
+params.variants_resources = "NO_FILE"
+params.interval_files = []
+params.tumour_normal = ""
 
-include { getPileupSummaries as getPST; getPileupSummaries as getPSN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.8.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
-// include gatherPileupSummaries as gatherPS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.8.0-2.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
-// include calculateContamination as calCont from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-2.0/tools/gatk-calculate-contamination/gatk-calculate-contamination'
+params.getPileupSummaries = [:]
+params.gatherPileupSummaries = [:]
+params.calculateContamination = [:]
+
+getPileupSummaries_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.getPileupSummaries ?: [:]) 
+]
+
+gatherPileupSummaries_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.gatherPileupSummaries ?: [:]) 
+]
+
+calculateContamination_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.calculateContamination ?: [:]) 
+]
+
+// Include all modules and pass params
+include { gatkGetPileupSummaries as getPS; gatkGetPileupSummaries as getPSM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.8.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
+include { gatkGatherPileupSummaries as gatherPS; gatkGatherPileupSummaries as gatherPSM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.8.0-2.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
+include { gatkCalculateContamination as calCont } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-2.0/tools/gatk-calculate-contamination/gatk-calculate-contamination' params(calculateContamination_params)
+
 
 def getSecondaryFiles(main_file, exts){  //this is kind of like CWL's secondary files
-    def all_files = []
-    for (ext in exts) {
-        all_files.add(main_file + ext)
+  def secondaryFiles = []
+  for (ext in exts) {
+    if (ext.startsWith("^")) {
+      ext = ext.replace("^", "")
+      parts = main_file.split("\\.").toList()
+      parts.removeLast()
+      secondaryFiles.add((parts + [ext]).join("."))
+    } else {
+      secondaryFiles.add(main_file + '.' + ext)
     }
-    return all_files
+  }
+  return secondaryFiles
 }
 
 
 workflow calculateContaminationWf {
     take:
-        intervals
-        tumour_aln_seq
-        normal_aln_seq
-
+        aln_seq
+        match_aln_seq
+        ref_genome_fa
+        variants_resources
+        interval_files
+        tumour_normal
 
     main:
-        // getPST
-
-        // getPSN
+        // getPS
+        getPS(
+            file(aln_seq),
+            Channel.fromPath(getSecondaryFiles(aln_seq, ['bai', 'crai'])).collect(),
+            file(ref_genome_fa),
+            Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['fai', '^dict']), checkIfExists: true).collect(),
+            file(variants_resources),
+            Channel.fromPath(getSecondaryFiles(variants_resources, ['tbi']), checkIfExists: true).collect(),
+            interval_files.flatten()
+        )
 
         // gatherPS
+        gatherPS(
+            Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['^dict']), checkIfExists: true).collect(),
+            getPS.out.pileups_metrics.collect()
+        )
 
-        // calCont
+        if (match_aln_seq != 'NO_FILE') {
+            // getPSM
+            getPSM(
+                file(match_aln_seq),
+                Channel.fromPath(getSecondaryFiles(match_aln_seq, ['bai', 'crai'])).collect(),
+                file(ref_genome_fa),
+                Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['fai', '^dict']), checkIfExists: true).collect(),
+                file(variants_resources),
+                Channel.fromPath(getSecondaryFiles(variants_resources, ['tbi']), checkIfExists: true).collect(),
+                interval_files.flatten()
+            )
+
+            // gatherPSM
+            gatherPSM(
+                Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['^dict']), checkIfExists: true).collect(),
+                getPSM.out.pileups_metrics.collect()
+            )
+            
+            // calCont
+            calCont(
+                gatherPS.out.merged_pileups_metrics,
+                gatherPSM.out.merged_pileups_metrics,
+                'tumour'
+            )
+        } else {
+            // calCont
+            calCont(
+                gatherPS.out.merged_pileups_metrics,
+                file("NO_FILE"),
+                tumour_normal
+            )
+        }
+
+    emit:
+        segmentation_metrics = calCont.out.segmentation_metrics
+        contamination_metrics = calCont.out.contamination_metrics
 
 }
 
 
 workflow {
     calculateContaminationWf(
-        params.study_id,
-        params.tumour_aln_analysis_id,
-        params.normal_aln_analysis_id
+        params.aln_seq,
+        params.match_aln_seq,
+        params.ref_genome_fa,
+        params.variants_resources,
+        Channel.fromPath(params.interval_files),
+        params.tumour_normal
     )
 }
