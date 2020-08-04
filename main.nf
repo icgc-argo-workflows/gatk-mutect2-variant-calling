@@ -293,6 +293,9 @@ workflow M2 {
         )
 
         // learnROM
+        learnROM(
+            Mutect2.out.f1r2_counts
+        )
 
         // mergeVcfs
 
