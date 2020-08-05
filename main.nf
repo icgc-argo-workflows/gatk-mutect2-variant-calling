@@ -216,7 +216,7 @@ include gatkMergeVcfs as mergeVcfs from './modules/raw.githubusercontent.com/icg
 include gatkMergeMutectStats as mergeMS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
 include calculateContamination as calCont from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 // include filterMutectCalls as filterMC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
-// include filterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.8.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts' params(filterAlignmentArtifacts_params)
+include filterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.8.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts'
 include cleanupWorkdir as cleanup from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
 
@@ -330,6 +330,16 @@ workflow M2 {
         // filterMC
 
         // filterAA
+        filterAA(
+            bqsrT.out.bqsr_bam,
+            bqsrT.out.bqsr_bam_bai,
+            ref_fa,
+            ref_fa_2nd,
+            Channel.fromPath(getSecondaryFiles(params.ref_fa, ['img']), checkIfExists: true),  // to be turned into workflow input
+            mergeVcfs.out.output_vcf,  // to be replaced by vcf output from filterMC
+            mergeVcfs.out.output_tbi,
+            params.output_vcf_basename
+        )
 
         // genPayloadVariant
 
