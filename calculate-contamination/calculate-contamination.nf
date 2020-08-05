@@ -63,64 +63,53 @@ include { gatkGatherPileupSummaries as gatherPS; gatkGatherPileupSummaries as ga
 include { gatkCalculateContamination as calCont } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-2.0/tools/gatk-calculate-contamination/gatk-calculate-contamination' params(calculateContamination_params)
 
 
-def getSecondaryFiles(main_file, exts){  //this is kind of like CWL's secondary files
-  def secondaryFiles = []
-  for (ext in exts) {
-    if (ext.startsWith("^")) {
-      ext = ext.replace("^", "")
-      parts = main_file.split("\\.").toList()
-      parts.removeLast()
-      secondaryFiles.add((parts + [ext]).join("."))
-    } else {
-      secondaryFiles.add(main_file + '.' + ext)
-    }
-  }
-  return secondaryFiles
-}
-
-
-workflow calculateContaminationWf {
+workflow calculateContamination {
     take:
         aln_seq
+        aln_seq_idx
         match_aln_seq
+        match_aln_seq_idx
         ref_genome_fa
+        ref_genome_fa_2nd
+        ref_genome_fa_dict
         variants_resources
+        variants_resources_indices
         interval_files
         tumour_normal
 
     main:
         // getPS
         getPS(
-            file(aln_seq),
-            Channel.fromPath(getSecondaryFiles(aln_seq, ['bai', 'crai'])).collect(),
-            file(ref_genome_fa),
-            Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['fai', '^dict']), checkIfExists: true).collect(),
-            file(variants_resources),
-            Channel.fromPath(getSecondaryFiles(variants_resources, ['tbi']), checkIfExists: true).collect(),
+            aln_seq,
+            aln_seq_idx.collect(),
+            ref_genome_fa,
+            ref_genome_fa_2nd.collect(),
+            variants_resources,
+            variants_resources_indices.collect(),
             interval_files.flatten()
         )
 
         // gatherPS
         gatherPS(
-            Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['^dict']), checkIfExists: true).collect(),
+            ref_genome_fa_dict.collect(),
             getPS.out.pileups_metrics.collect()
         )
 
         if (match_aln_seq != 'NO_FILE') {
             // getPSM
             getPSM(
-                file(match_aln_seq),
-                Channel.fromPath(getSecondaryFiles(match_aln_seq, ['bai', 'crai'])).collect(),
-                file(ref_genome_fa),
-                Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['fai', '^dict']), checkIfExists: true).collect(),
-                file(variants_resources),
-                Channel.fromPath(getSecondaryFiles(variants_resources, ['tbi']), checkIfExists: true).collect(),
+                match_aln_seq,
+                match_aln_seq_idx.collect(),
+                ref_genome_fa,
+                ref_genome_fa_2nd.collect(),
+                variants_resources,
+                variants_resources_indices.collect(),
                 interval_files.flatten()
             )
 
             // gatherPSM
             gatherPSM(
-                Channel.fromPath(getSecondaryFiles(ref_genome_fa, ['^dict']), checkIfExists: true).collect(),
+                ref_genome_fa_dict.collect(),
                 getPSM.out.pileups_metrics.collect()
             )
             
@@ -145,14 +134,3 @@ workflow calculateContaminationWf {
 
 }
 
-
-workflow {
-    calculateContaminationWf(
-        params.aln_seq,
-        params.match_aln_seq,
-        params.ref_genome_fa,
-        params.variants_resources,
-        Channel.fromPath(params.interval_files),
-        params.tumour_normal
-    )
-}
