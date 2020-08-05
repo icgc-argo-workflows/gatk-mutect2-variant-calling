@@ -95,7 +95,7 @@ workflow calculateContamination {
             getPS.out.pileups_metrics.collect()
         )
 
-        if (match_aln_seq != 'NO_FILE') {
+        if (match_aln_seq.name != 'NO_FILE') {
             // getPSM
             getPSM(
                 match_aln_seq,

@@ -34,8 +34,9 @@ params.tumour_normal = ""
 params.cpus = 2
 params.mem = 4
 
-include { calculateContaminationWf as calCont; getSecondaryFiles } from '../calculate-contamination'
-include { gatkSplitIntervals as splitItvls } from '../modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.4.1-1.0/tools/gatk-split-intervals/gatk-split-intervals'
+include { calculateContamination as calCont } from '../calculate-contamination'
+include getSecondaryFiles from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-base-recalibrator.4.1.8.0-1.0/tools/gatk-base-recalibrator/gatk-base-recalibrator'
+include { gatkSplitIntervals as splitItvls } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.4.1-1.0/tools/gatk-split-intervals/gatk-split-intervals'
 
 Channel
   .fromPath(getSecondaryFiles(params.ref_genome_fa, ['^dict', 'fai']), checkIfExists: true)
@@ -51,12 +52,21 @@ workflow {
         interval_files = Channel.fromPath(params.interval_files)
     }
 
+    variants_resources = Channel.fromPath(params.variants_resources)
+
+    variants_resources_indices = variants_resources.flatMap { v -> getSecondaryFiles(v, ['tbi']) }
+
     calCont(
-      params.aln_seq,
-      params.match_aln_seq,
-      params.ref_genome_fa,
-      params.variants_resources,
-      interval_files,
+      file(params.aln_seq),
+      Channel.fromPath(getSecondaryFiles(params.aln_seq, ['bai', 'crai'])).collect(),
+      file(params.match_aln_seq),
+      Channel.fromPath(getSecondaryFiles(params.match_aln_seq, ['bai', 'crai'])).collect(),
+      file(params.ref_genome_fa),
+      Channel.fromPath(getSecondaryFiles(params.ref_genome_fa, ['^dict', 'fai'])).collect(),
+      Channel.fromPath(getSecondaryFiles(params.ref_genome_fa, ['^dict'])).collect(),
+      variants_resources.collect(),
+      variants_resources_indices.collect(),
+      interval_files.flatten(),
       params.tumour_normal
     )
 }

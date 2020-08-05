@@ -31,7 +31,8 @@ params.sequence_group_interval = []
 params.cpus = 2
 params.mem = 4
 
-include {bqsr; getSecondaryFiles} from '../bqsr'
+include bqsr from '../bqsr'
+include getSecondaryFiles from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-base-recalibrator.4.1.8.0-1.0/tools/gatk-base-recalibrator/gatk-base-recalibrator'
 include gatkSplitIntervals as splitItvls from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-split-intervals.4.1.4.1-1.0/tools/gatk-split-intervals/gatk-split-intervals'
 
 
