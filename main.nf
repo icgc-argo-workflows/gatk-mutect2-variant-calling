@@ -347,8 +347,8 @@ workflow M2 {
             ref_fa,
             ref_fa_2nd.collect(),
             Channel.fromPath(getSec(params.ref_fa, ['img']), checkIfExists: true),  // to be turned into workflow input
-            mergeVcfs.out.output_vcf,  // to be replaced by vcf output from filterMC
-            mergeVcfs.out.output_tbi,
+            filterMC.out.filtered_vcf,
+            filterMC.out.filtered_vcf_tbi,
             'filtered_vcf'
         )
 
