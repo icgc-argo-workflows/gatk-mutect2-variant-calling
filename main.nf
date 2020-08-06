@@ -216,7 +216,7 @@ include gatkMergeVcfs as mergeVcfs from './modules/raw.githubusercontent.com/icg
 include gatkMergeMutectStats as mergeMS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
 include calculateContamination as calCont from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 // include filterMutectCalls as filterMC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
-include filterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.8.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts'
+include gatkFilterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.8.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts'
 include cleanupWorkdir as cleanup from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
 
@@ -302,13 +302,13 @@ workflow M2 {
 
         // mergeVcfs
         mergeVcfs(
-            Mutect2.out.output_vcf,
+            Mutect2.out.output_vcf.collect(),
             dnldT.out.files.flatten().first().name  // basename of output
         )
 
         // mergeMS
         mergeMS(
-            Mutect2.out.mutect_stats,
+            Mutect2.out.mutect_stats.collect(),
             'merged.stats'
         )
 
@@ -335,10 +335,10 @@ workflow M2 {
             bqsrT.out.bqsr_bam_bai,
             ref_fa,
             ref_fa_2nd,
-            Channel.fromPath(getSecondaryFiles(params.ref_fa, ['img']), checkIfExists: true),  // to be turned into workflow input
+            Channel.fromPath(getSec(params.ref_fa, ['img']), checkIfExists: true),  // to be turned into workflow input
             mergeVcfs.out.output_vcf,  // to be replaced by vcf output from filterMC
             mergeVcfs.out.output_tbi,
-            params.output_vcf_basename
+            'filtered_vcf'
         )
 
         // genPayloadVariant
