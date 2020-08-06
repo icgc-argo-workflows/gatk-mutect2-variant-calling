@@ -248,10 +248,12 @@ workflow M2 {
         Channel
             .fromPath(bqrs_recal_grouping_file)
             .splitText()
+            .map{ row -> row.trim() }
             .set{ bqrs_recal_grouping_ch }
         Channel
             .fromPath(bqrs_apply_grouping_file)
             .splitText()
+            .map{ row -> row.trim() }
             .set{ bqrs_apply_grouping_ch }
 
         if (tumour_aln_analysis_id && normal_aln_analysis_id) {
