@@ -25,7 +25,7 @@ nextflow.preview.dsl = 2
 version = '4.1.8.0-1.0'
 
 params.seq = "NO_FILE"
-params.interval_file = "NO_FILE"
+params.intervals_str = ""
 params.container_version = ""
 params.ref_genome_fa = "NO_FILE"
 params.known_sites_vcfs = "NO_FILE"

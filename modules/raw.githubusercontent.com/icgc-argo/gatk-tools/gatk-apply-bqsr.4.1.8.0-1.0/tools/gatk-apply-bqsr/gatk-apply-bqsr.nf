@@ -25,29 +25,12 @@ nextflow.preview.dsl = 2
 version = '4.1.8.0-1.0'
 
 params.seq = "NO_FILE"
-params.interval_file = "NO_FILE"
+params.intervals_str = ""
 params.ref_genome_fa = "NO_FILE"
 params.recalibration_report = "NO_FILE"
 params.cpus = 1
 params.mem = 1  // in GB
 params.container_version = ""
-
-
-def getSecondaryFiles(main_file, exts){
-  def secondaryFiles = []
-  for (ext in exts) {
-    if (ext.startsWith("^")) {
-      ext = ext.replace("^", "")
-      parts = main_file.split("\\.").toList()
-      parts.removeLast()
-      secondaryFiles.add((parts + [ext]).join("."))
-    } else {
-      secondaryFiles.add(main_file + '.' + ext)
-    }
-  }
-  return secondaryFiles
-}
-
 
 
 process gatkApplyBQSR {
@@ -61,7 +44,7 @@ process gatkApplyBQSR {
     path ref_genome_fa
     path ref_genome_secondary_file
     path recalibration_report
-    path interval_file
+    val intervals_str
     val output_bam_basename
 
   output:
@@ -70,12 +53,12 @@ process gatkApplyBQSR {
     path "${arg_output}.bam.md5", emit: recalibrated_bam_md5
 
   script:
-    if (interval_file.name == 'NO_FILE') {
-      arg_interval_file = ""
+    if (!intervals_str) {
+      arg_intervals = ""
       arg_output = output_bam_basename
     } else {
-      arg_interval_file = "-i ${interval_file}"
-      interval_prefix = interval_file.name.split("-").toList()[0]
+      arg_intervals = "-i ${intervals_str}"
+      interval_prefix = intervals_str.md5()
       arg_output = "${interval_prefix}.${output_bam_basename}"
     }
 
@@ -84,7 +67,7 @@ process gatkApplyBQSR {
                       -r ${ref_genome_fa} \
                       -m ${(int) (params.mem * 1000)} \
                       -c ${recalibration_report} \
-                      -o ${arg_output} ${arg_interval_file}
+                      -o ${arg_output} ${arg_intervals}
 
     ln -s ${arg_output}.bai ${arg_output}.bam.bai
     """
