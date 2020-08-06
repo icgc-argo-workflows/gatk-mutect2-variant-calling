@@ -110,7 +110,10 @@ params.normal_aln_cram = "NO_FILE"
 
 // params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
 params.ref_fa = "/home/ubuntu/sanger-wxs-jobs/reference/GRCh38_hla_decoy_ebv/GRCh38_hla_decoy_ebv.fa"
-params.interval_files = ""
+
+params.mutect2_scatter_interval_files = ""
+params.bqrs_recal_grouping_file = "bqsr.sequence_grouping.txt"
+params.bqrs_apply_grouping_file = "bqsr.sequence_grouping_with_unmapped.txt"
 
 params.known_sites_vcfs = [
     // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
@@ -235,11 +238,21 @@ workflow M2 {
         tumour_aln_cram
         normal_aln_metadata
         normal_aln_cram
-        interval_files
+        mutect2_scatter_interval_files
+        bqrs_recal_grouping_file
+        bqrs_apply_grouping_file
 
     main:
         local_mode = false
-        Channel.fromPath(interval_files, checkIfExists: true).set{ interval_files_ch }
+        Channel.fromPath(mutect2_scatter_interval_files, checkIfExists: true).set{ mutect2_scatter_interval_files_ch }
+        Channel
+            .fromPath(bqrs_recal_grouping_file)
+            .splitText()
+            .set{ bqrs_recal_grouping_ch }
+        Channel
+            .fromPath(bqrs_apply_grouping_file)
+            .splitText()
+            .set{ bqrs_apply_grouping_ch }
 
         if (tumour_aln_analysis_id && normal_aln_analysis_id) {
             // download tumour aligned seq and metadata from song/score (analysis type: sequencing_alignment)
@@ -267,7 +280,8 @@ workflow M2 {
             ref_fa_2nd,
             known_sites_vcfs,
             known_sites_indices,
-            interval_files_ch.flatten(),
+            bqrs_recal_grouping_ch,
+            bqrs_apply_grouping_ch,
             'tumour.recalibrated_bam'
         )
 
@@ -279,7 +293,8 @@ workflow M2 {
             ref_fa_2nd,
             known_sites_vcfs,
             known_sites_indices,
-            interval_files_ch.flatten(),
+            bqrs_recal_grouping_ch,
+            bqrs_apply_grouping_ch,
             'normal.recalibrated_bam'
         )
 
@@ -293,7 +308,7 @@ workflow M2 {
             ref_fa_2nd,
             known_sites_vcfs,
             known_sites_indices,
-            interval_files_ch.flatten()
+            mutect2_scatter_interval_files_ch.flatten()
         )
 
         // learnROM
@@ -324,7 +339,7 @@ workflow M2 {
             ref_fa_dict,
             known_sites_vcfs,
             known_sites_indices,
-            interval_files_ch,
+            mutect2_scatter_interval_files_ch,
             ""
         )
 
@@ -389,7 +404,9 @@ workflow {
         params.tumour_aln_cram,
         params.normal_aln_metadata,
         params.normal_aln_cram,
-        params.interval_files
+        params.mutect2_scatter_interval_files,
+        params.bqrs_recal_grouping_file,
+        params.bqrs_apply_grouping_file
     )
 }
 

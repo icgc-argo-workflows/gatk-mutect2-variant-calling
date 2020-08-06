@@ -65,7 +65,8 @@ workflow {
       ref_genome_fai_ch.collect(),  // secondary files: .fai and .dict
       known_sites_vcfs.collect(),
       known_sites_indices.collect(),
-      interval_files.flatten(),
+      interval_files,
+      interval_files,
       'recalibrated_bam'
     )
 

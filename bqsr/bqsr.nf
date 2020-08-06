@@ -46,7 +46,8 @@ workflow bqsr {
         ref_genome_fa_2nd  // secondary files: .fai and .dict
         known_sites_vcfs
         known_sites_vcf_indices
-        sequence_group_interval
+        bqrs_recal_grouping_ch
+        bqrs_apply_grouping_ch
         recalibrated_bam_basename
 
     main:
@@ -58,7 +59,7 @@ workflow bqsr {
             ref_genome_fa_2nd.collect(),
             known_sites_vcfs.collect(),
             known_sites_vcf_indices.collect(),
-            sequence_group_interval
+            bqrs_recal_grouping_ch
         )
 
         // GatherBqsrReports
@@ -74,7 +75,7 @@ workflow bqsr {
             ref_genome_fa,
             ref_genome_fa_2nd.collect(),
             gatherBS.out.bqsr_report,
-            sequence_group_interval,
+            bqrs_apply_grouping_ch,
             'recalibrated_bam'
         )
 
