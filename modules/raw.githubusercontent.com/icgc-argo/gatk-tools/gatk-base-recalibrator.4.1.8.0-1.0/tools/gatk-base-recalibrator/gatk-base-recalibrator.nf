@@ -62,18 +62,18 @@ process gatkBaseRecalibrator {
     path ref_genome_secondary_file
     path known_sites_vcfs
     path known_sites_indices
-    path interval_file
+    val intervals_str
 
   output:
     path "${arg_output_prefix}.recal_data.csv", emit: recalibration_report
 
   script:
-    if (interval_file.name == 'NO_FILE') {
-      arg_interval_file = ""
+    if (!intervals_str) {
+      arg_intervals = ""
       arg_output_prefix = seq
     } else {
-      arg_interval_file = "-i ${interval_file}"
-      interval_prefix = interval_file.name.split("-").toList()[0]
+      arg_intervals = "-i ${intervals_str}"
+      interval_prefix = intervals_str.md5()
       arg_output_prefix = "${interval_prefix}.${seq}"
     }
     arg_known_sites = known_sites_vcfs.name == 'NO_FILE' ? "" : "-k ${known_sites_vcfs}"
@@ -82,6 +82,6 @@ process gatkBaseRecalibrator {
     gatk-base-recalibrator.py -s ${seq} \
                       -r ${ref_genome_fa} \
                       -m ${(int) (params.mem * 1000)} \
-                      -o ${arg_output_prefix}.recal_data.csv ${arg_interval_file} ${arg_known_sites}
+                      -o ${arg_output_prefix}.recal_data.csv ${arg_intervals} ${arg_known_sites}
     """
 }
