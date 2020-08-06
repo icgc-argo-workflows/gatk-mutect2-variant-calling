@@ -226,6 +226,7 @@ workflow M2 {
         ref_fa
         ref_fa_2nd
         ref_fa_dict
+        ref_fa_img
         known_sites_vcfs
         known_sites_indices
         tumour_aln_analysis_id
@@ -346,10 +347,10 @@ workflow M2 {
             bqsrT.out.bqsr_bam_bai,
             ref_fa,
             ref_fa_2nd.collect(),
-            Channel.fromPath(getSec(params.ref_fa, ['img']), checkIfExists: true),  // to be turned into workflow input
+            ref_fa_img,
             filterMC.out.filtered_vcf,
             filterMC.out.filtered_vcf_tbi,
-            'filtered_vcf'
+            'aln_artifact_filtered_vcf'
         )
 
         // genPayloadVariant
@@ -379,6 +380,7 @@ workflow {
         file(params.ref_fa),
         Channel.fromPath(getSec(params.ref_fa, ['^dict', 'fai']), checkIfExists: true).collect(),
         Channel.fromPath(getSec(params.ref_fa, ['^dict']), checkIfExists: true).collect(),
+        Channel.fromPath(getSec(params.ref_fa, ['img'])),
         known_sites_vcfs.collect(),
         known_sites_indices.collect(),
         params.tumour_aln_analysis_id,
