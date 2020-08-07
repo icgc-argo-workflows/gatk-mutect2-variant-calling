@@ -1,0 +1,6 @@
+{
+  "study_id": "OCCAMS-GB",
+  "tumour_aln_analysis_id": "c35e2b50-9063-42b4-9e2b-509063d2b466",
+  "normal_aln_analysis_id": "2f394b4d-d717-4652-b94b-4dd7171652df",
+  "ref_fa": "/home/ubuntu/reference/GRCh38_hla_decoy_ebv.fa"
+}
