@@ -32,10 +32,10 @@ params.mem = 4
 
 
 // Include all modules and pass params
-include gatkBaseRecalibrator as baseRC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-base-recalibrator.4.1.8.0-1.0/tools/gatk-base-recalibrator/gatk-base-recalibrator'
-include gatkGatherBQSRReports as gatherBS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-bqsr-reports.4.1.8.0-1.0/tools/gatk-gather-bqsr-reports/gatk-gather-bqsr-reports'
-include gatkApplyBQSR as applyBQSR from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-apply-bqsr.4.1.8.0-1.0/tools/gatk-apply-bqsr/gatk-apply-bqsr'
-include gatkGatherBamFiles as gatherBAMs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-bam-files.4.1.8.0-1.0/tools/gatk-gather-bam-files/gatk-gather-bam-files'
+include { gatkBaseRecalibrator as baseRC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-base-recalibrator.4.1.8.0-1.0/tools/gatk-base-recalibrator/gatk-base-recalibrator'
+include { gatkGatherBQSRReports as gatherBS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-bqsr-reports.4.1.8.0-1.0/tools/gatk-gather-bqsr-reports/gatk-gather-bqsr-reports'
+include { gatkApplyBQSR as applyBQSR } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-apply-bqsr.4.1.8.0-1.0/tools/gatk-apply-bqsr/gatk-apply-bqsr'
+include { gatkGatherBamFiles as gatherBAMs } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-bam-files.4.1.8.0-1.0/tools/gatk-gather-bam-files/gatk-gather-bam-files'
 
 
 workflow bqsr {
