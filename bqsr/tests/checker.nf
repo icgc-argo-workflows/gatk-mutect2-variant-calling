@@ -27,6 +27,7 @@ params.aln_seq = "NO_FILE"
 params.ref_genome_fa = "NO_FILE"
 params.known_sites_vcfs = []
 params.sequence_group_interval = []
+params.sequence_group_with_unmapped_interval = []
 
 params.cpus = 2
 params.mem = 4
@@ -48,16 +49,18 @@ known_sites_vcfs = Channel.fromPath(params.known_sites_vcfs)
 
 known_sites_indices = known_sites_vcfs.flatMap { v -> getSecondaryFiles(v, ['tbi']) }
 
+Channel
+  .from(params.sequence_group_interval)
+  .ifEmpty(null)
+  .set{ sequence_group_interval_ch }
+
+Channel
+  .from(params.sequence_group_with_unmapped_interval)
+  .ifEmpty(null)
+  .set{ sequence_group_with_unmapped_interval_ch }
 
 workflow {
   main:
-    if (params.sequence_group_interval.size() == 0) {
-        splitItvls(params.scatter_count, file(params.ref_genome_fa), ref_genome_fai_ch.collect(), file('NO_FILE'))
-        interval_files = splitItvls.out.interval_files
-    } else {
-       Channel.fromPath(params.sequence_group_interval).set{ interval_files }
-    }
-
     bqsr(
       file(params.aln_seq),
       seq_crai_ch.collect(),
@@ -65,9 +68,10 @@ workflow {
       ref_genome_fai_ch.collect(),  // secondary files: .fai and .dict
       known_sites_vcfs.collect(),
       known_sites_indices.collect(),
-      interval_files,
-      interval_files,
-      'recalibrated_bam'
+      sequence_group_interval_ch,
+      sequence_group_with_unmapped_interval_ch,
+      'recalibrated_final_bam'
     )
 
 }
+

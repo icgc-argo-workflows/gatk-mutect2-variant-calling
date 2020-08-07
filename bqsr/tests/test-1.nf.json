@@ -3,5 +3,12 @@
   "seq": "data/HCC1143-mini-T/8f879c15-14da-593d-bb76-db866f81ab3a.6.20190927.wgs.grch38.bam",
   "ref_genome_fa": "reference/tiny-grch38-chr11-530001-537000.fa",
   "known_sites_vcfs": ["data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"],
-  "sequence_group_interval": ["data/my-intervals.bed"]
+  "sequence_group_interval": [
+    [1, "chr11:1+"]
+  ],
+  "sequence_group_with_unmapped_interval": [
+    [1, "chr11:1+"],
+    [2, "unmapped"]
+  ]
 }
+
