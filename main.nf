@@ -112,8 +112,8 @@ params.normal_aln_cram = "NO_FILE"
 params.ref_fa = "/home/ubuntu/sanger-wxs-jobs/reference/GRCh38_hla_decoy_ebv/GRCh38_hla_decoy_ebv.fa"
 
 params.mutect2_scatter_interval_files = ""
-params.bqrs_recal_grouping_file = "bqsr.sequence_grouping.txt"
-params.bqrs_apply_grouping_file = "bqsr.sequence_grouping_with_unmapped.txt"
+params.bqrs_recal_grouping_file = "assets/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv"
+params.bqrs_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv"
 
 params.known_sites_vcfs = [
     // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
@@ -249,18 +249,16 @@ workflow M2 {
             .fromPath(mutect2_scatter_interval_files, checkIfExists: true)
             .set{ mutect2_scatter_interval_files_ch }
 
-        def index = 0
         Channel
             .fromPath(bqrs_recal_grouping_file)
-            .splitText()
-            .map{ row -> tuple(index++, row.trim()) }
+            .splitCsv()
+            .map{ row -> tuple(row[0].toInteger(), row[1].trim()) }
             .set{ bqrs_recal_grouping_ch }
 
-        index = 0
         Channel
             .fromPath(bqrs_apply_grouping_file)
-            .splitText()
-            .map{ row -> tuple(index++, row.trim()) }
+            .splitCsv()
+            .map{ row -> tuple(row[0].toInteger(), row[1].trim()) }
             .set{ bqrs_apply_grouping_ch }
 
         if (tumour_aln_analysis_id && normal_aln_analysis_id) {
