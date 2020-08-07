@@ -2,7 +2,7 @@
 nextflow.preview.dsl = 2
 name = 'gatk-mutect2-variant-calling'
 short_name = 'gatk-mutect2'
-version = '4.1.8.0-1.0-dev'
+version = '4.1.8.0-0.1'
 
 
 /*
