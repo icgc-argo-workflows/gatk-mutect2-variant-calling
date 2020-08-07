@@ -214,13 +214,13 @@ upload_params = [
 include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
 include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.0/tools/gatk-mutect2/gatk-mutect2'
-include gatkLearnReadOrientationModel as learnROM from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
-include gatkMergeVcfs as mergeVcfs from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
-include gatkMergeMutectStats as mergeMS from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
-include calculateContamination as calCont from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
-include gatkFilterMutectCalls as filterMC from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
-include gatkFilterAlignmentArtifacts as filterAA from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.8.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts'
-include cleanupWorkdir as cleanup from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
+include { gatkLearnReadOrientationModel as learnROM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
+include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
+include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
+include { calculateContamination as calCont } from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
+include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
+include { gatkFilterAlignmentArtifacts as filterAA } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-alignment-artifacts.4.1.8.0-2.0/tools/gatk-filter-alignment-artifacts/gatk-filter-alignment-artifacts'
+include { cleanupWorkdir as cleanup } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
 
 workflow M2 {
