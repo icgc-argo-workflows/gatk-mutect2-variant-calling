@@ -25,7 +25,7 @@ nextflow.preview.dsl = 2
 version = '4.1.8.0-1.0'
 
 params.seq = "NO_FILE"
-params.intervals_str = ""
+params.intervals = []
 params.container_version = ""
 params.ref_genome_fa = "NO_FILE"
 params.known_sites_vcfs = "NO_FILE"
@@ -62,19 +62,19 @@ process gatkBaseRecalibrator {
     path ref_genome_secondary_file
     path known_sites_vcfs
     path known_sites_indices
-    val intervals_str
+    val intervals
 
   output:
     path "${arg_output_prefix}.recal_data.csv", emit: recalibration_report
 
   script:
-    if (!intervals_str) {
+    if (!intervals) {
       arg_intervals = ""
       arg_output_prefix = seq
     } else {
-      arg_intervals = "-i ${intervals_str}"
-      interval_prefix = intervals_str.md5()
-      arg_output_prefix = "${interval_prefix}.${seq}"
+      (index, intervals) = intervals
+      arg_intervals = "-i ${intervals}"
+      arg_output_prefix = "${index.toString().padLeft(6, '0')}.${seq}"
     }
     arg_known_sites = known_sites_vcfs.name == 'NO_FILE' ? "" : "-k ${known_sites_vcfs}"
 

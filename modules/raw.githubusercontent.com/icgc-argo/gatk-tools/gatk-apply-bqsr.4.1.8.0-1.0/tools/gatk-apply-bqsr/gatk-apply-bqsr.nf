@@ -25,7 +25,7 @@ nextflow.preview.dsl = 2
 version = '4.1.8.0-1.0'
 
 params.seq = "NO_FILE"
-params.intervals_str = ""
+params.intervals = []
 params.ref_genome_fa = "NO_FILE"
 params.recalibration_report = "NO_FILE"
 params.cpus = 1
@@ -44,7 +44,7 @@ process gatkApplyBQSR {
     path ref_genome_fa
     path ref_genome_secondary_file
     path recalibration_report
-    val intervals_str
+    val intervals
     val output_bam_basename
 
   output:
@@ -53,13 +53,13 @@ process gatkApplyBQSR {
     path "${arg_output}.bam.md5", emit: recalibrated_bam_md5
 
   script:
-    if (!intervals_str) {
+    if (!intervals) {
       arg_intervals = ""
       arg_output = output_bam_basename
     } else {
-      arg_intervals = "-i ${intervals_str}"
-      interval_prefix = intervals_str.md5()
-      arg_output = "${interval_prefix}.${output_bam_basename}"
+      (index, intervals) = intervals
+      arg_intervals = "-i ${intervals}"
+      arg_output = "${index.toString().padLeft(6, '0')}.${output_bam_basename}"
     }
 
     """
