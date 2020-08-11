@@ -2,7 +2,7 @@
 nextflow.preview.dsl = 2
 name = 'gatk-mutect2-variant-calling'
 short_name = 'gatk-mutect2'
-version = '4.1.8.0-0.1'
+version = '4.1.8.0-0.2-dev'
 
 
 /*
@@ -117,8 +117,10 @@ params.bqrs_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.g
 
 params.known_sites_vcfs = [
     // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
-    "/home/ubuntu/gatk-mutect2-variant-calling/bqsr/tests/af-only-gnomad.hg38.vcf.gz"
+    "/home/ubuntu/gatk-mutect2-variant-calling/bqsr/tests/af-only-gnomad.pass-only.hg38.vcf.gz"
 ]
+
+params.contamination_variants = "/home/ubuntu/gatk-mutect2-variant-calling/bqsr/tests/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz"
 
 params.api_token = ""
 params.song_url = ""
@@ -129,19 +131,27 @@ params.cpus = 2
 params.mem = 4
 
 params.download = [:]
+params.bqsr = [:]
 
-params.bqsr = [
+params.bqsr_params = [
     'dbsnp_vcf_gz': 'NO_FILE',
-    'known_indels_sites_vcf_gzs': 'NO_FILE'
+    'known_indels_sites_vcf_gzs': 'NO_FILE',
+    *:(params.bqsr ?: [:])
 ]
 
-params.mutect2 = [
+params.mutect2_params = [
     'germline_resource': 'NO_FILE',
-    'pon': 'NO_FILE'
+    'pon': 'NO_FILE',
+    *:(params.mutect2 ?: [:])
 ]
-params.gatherPileupSummaries = [
-    'ref_dict': 'NO_FILE'
+
+params.gatherPileupSummaries_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    'ref_dict': params.ref_dict,
+    *:(params.gatherPileupSummaries ?: [:])
 ]
+
 params.calculateContamination = [
     'variants_for_contamination': 'NO_FILE'
 ]
@@ -232,6 +242,8 @@ workflow M2 {
         ref_fa_img
         known_sites_vcfs
         known_sites_indices
+        contamination_variants
+        contamination_variants_indices
         tumour_aln_analysis_id
         normal_aln_analysis_id
         tumour_aln_metadata
@@ -344,8 +356,8 @@ workflow M2 {
             ref_fa,
             ref_fa_2nd,
             ref_fa_dict,
-            known_sites_vcfs,
-            known_sites_indices,
+            contamination_variants,
+            contamination_variants_indices,
             mutect2_scatter_interval_files_ch,
             ""
         )
@@ -394,8 +406,10 @@ workflow M2 {
 
 workflow {
     known_sites_vcfs = Channel.fromPath(params.known_sites_vcfs)
-
     known_sites_indices = known_sites_vcfs.flatMap { v -> getSec(v, ['tbi']) }
+
+    contamination_variants = Channel.fromPath(params.contamination_variants)
+    contamination_variants_indices = contamination_variants.flatMap { v -> getSec(v, ['tbi']) }
 
     M2(
         params.study_id,
@@ -405,6 +419,8 @@ workflow {
         Channel.fromPath(getSec(params.ref_fa, ['img'])),
         known_sites_vcfs.collect(),
         known_sites_indices.collect(),
+        contamination_variants,
+        contamination_variants_indices,
         params.tumour_aln_analysis_id,
         params.normal_aln_analysis_id,
         params.tumour_aln_metadata,
