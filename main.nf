@@ -223,7 +223,7 @@ upload_params = [
 
 include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
-include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.0/tools/gatk-mutect2/gatk-mutect2'
+include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.1/tools/gatk-mutect2/gatk-mutect2'
 include { gatkLearnReadOrientationModel as learnROM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
 include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
 include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
@@ -325,8 +325,8 @@ workflow M2 {
             bqsrN.out.bqsr_bam_bai,
             ref_fa,
             ref_fa_2nd,
-            known_sites_vcfs,
-            known_sites_indices,
+            known_sites_vcfs,  // af only gnomad
+            known_sites_indices,  // af only gnomad_idx
             mutect2_scatter_interval_files_ch.flatten()
         )
 

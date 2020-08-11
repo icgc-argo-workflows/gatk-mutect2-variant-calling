@@ -22,7 +22,7 @@
  */
 
 nextflow.preview.dsl = 2
-version = '4.1.8.0-2.0'
+version = '4.1.8.0-2.1'
 
 params.tumour_reads = "NO_FILE1"
 params.normal_reads = "NO_FILE2"
