@@ -84,7 +84,7 @@ workflow calculateContamination {
             aln_seq_idx.collect(),
             ref_genome_fa,
             ref_genome_fa_2nd.collect(),
-            variants_resources,
+            variants_resources.collect(),
             variants_resources_indices.collect(),
             interval_files.flatten()
         )
@@ -102,7 +102,7 @@ workflow calculateContamination {
                 match_aln_seq_idx.collect(),
                 ref_genome_fa,
                 ref_genome_fa_2nd.collect(),
-                variants_resources,
+                variants_resources.collect(),
                 variants_resources_indices.collect(),
                 interval_files.flatten()
             )

@@ -418,8 +418,8 @@ workflow {
         Channel.fromPath(getSec(params.ref_fa, ['^dict', 'fai']), checkIfExists: true).collect(),
         Channel.fromPath(getSec(params.ref_fa, ['^dict']), checkIfExists: true).collect(),
         Channel.fromPath(getSec(params.ref_fa, ['img'])),
-        germline_resource_vcfs.collect(),
-        germline_resource_indices.collect(),
+        germline_resource_vcfs,
+        germline_resource_indices,
         contamination_variants,
         contamination_variants_indices,
         params.tumour_aln_analysis_id,
@@ -433,4 +433,3 @@ workflow {
         params.bqrs_apply_grouping_file
     )
 }
-
