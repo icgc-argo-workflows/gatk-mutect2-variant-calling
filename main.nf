@@ -115,12 +115,13 @@ params.mutect2_scatter_interval_files = "assets/mutect2.intervals/*.interval_lis
 params.bqrs_recal_grouping_file = "assets/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv"
 params.bqrs_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv"
 
-params.known_sites_vcfs = [
+// Allele frequency only, pass-only gnomAD vcf file
+params.germline_resource_vcfs = [
     // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
-    "/home/ubuntu/gatk-mutect2-variant-calling/bqsr/tests/af-only-gnomad.pass-only.hg38.vcf.gz"
+    "/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.hg38.vcf.gz"
 ]
 
-params.contamination_variants = "/home/ubuntu/gatk-mutect2-variant-calling/bqsr/tests/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz"
+params.contamination_variants = "/home/ubuntu//gatk/resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz"
 
 params.api_token = ""
 params.song_url = ""
@@ -240,8 +241,8 @@ workflow M2 {
         ref_fa_2nd
         ref_fa_dict
         ref_fa_img
-        known_sites_vcfs
-        known_sites_indices
+        germline_resource_vcfs
+        germline_resource_indices
         contamination_variants
         contamination_variants_indices
         tumour_aln_analysis_id
@@ -297,8 +298,8 @@ workflow M2 {
             dnldT.out.files.flatten().last(),   // aln idx
             ref_fa,
             ref_fa_2nd,
-            known_sites_vcfs,
-            known_sites_indices,
+            germline_resource_vcfs,  // use gnomAD as known_sites
+            germline_resource_indices,
             bqrs_recal_grouping_ch,
             bqrs_apply_grouping_ch,
             'tumour.recalibrated_bam'
@@ -310,8 +311,8 @@ workflow M2 {
             dnldN.out.files.flatten().last(),   // aln idx
             ref_fa,
             ref_fa_2nd,
-            known_sites_vcfs,
-            known_sites_indices,
+            germline_resource_vcfs,  // use gnomAD as known_sites
+            germline_resource_indices,
             bqrs_recal_grouping_ch,
             bqrs_apply_grouping_ch,
             'normal.recalibrated_bam'
@@ -325,8 +326,8 @@ workflow M2 {
             bqsrN.out.bqsr_bam_bai,
             ref_fa,
             ref_fa_2nd,
-            known_sites_vcfs,  // af only gnomad
-            known_sites_indices,  // af only gnomad_idx
+            germline_resource_vcfs,
+            germline_resource_indices,
             mutect2_scatter_interval_files_ch.flatten()
         )
 
@@ -405,8 +406,8 @@ workflow M2 {
 
 
 workflow {
-    known_sites_vcfs = Channel.fromPath(params.known_sites_vcfs)
-    known_sites_indices = known_sites_vcfs.flatMap { v -> getSec(v, ['tbi']) }
+    germline_resource_vcfs = Channel.fromPath(params.germline_resource_vcfs)
+    germline_resource_indices = germline_resource_vcfs.flatMap { v -> getSec(v, ['tbi']) }
 
     contamination_variants = Channel.fromPath(params.contamination_variants)
     contamination_variants_indices = contamination_variants.flatMap { v -> getSec(v, ['tbi']) }
@@ -417,8 +418,8 @@ workflow {
         Channel.fromPath(getSec(params.ref_fa, ['^dict', 'fai']), checkIfExists: true).collect(),
         Channel.fromPath(getSec(params.ref_fa, ['^dict']), checkIfExists: true).collect(),
         Channel.fromPath(getSec(params.ref_fa, ['img'])),
-        known_sites_vcfs.collect(),
-        known_sites_indices.collect(),
+        germline_resource_vcfs.collect(),
+        germline_resource_indices.collect(),
         contamination_variants,
         contamination_variants_indices,
         params.tumour_aln_analysis_id,
