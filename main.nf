@@ -325,9 +325,9 @@ workflow M2 {
             bqsrN.out.bqsr_bam,
             bqsrN.out.bqsr_bam_bai,
             ref_fa,
-            ref_fa_2nd,
-            germline_resource_vcfs,
-            germline_resource_indices,
+            ref_fa_2nd.collect(),
+            germline_resource_vcfs.collect(),
+            germline_resource_indices.collect(),
             mutect2_scatter_interval_files_ch.flatten()
         )
 
