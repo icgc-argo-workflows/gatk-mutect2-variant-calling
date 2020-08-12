@@ -23,7 +23,7 @@
  */
 
 nextflow.preview.dsl = 2
-version = '4.1.8.0-2.0'
+version = '4.1.8.0-2.1'
 
 params.seq = "NO_FILE"
 params.ref_genome_fa = "NO_FILE"
