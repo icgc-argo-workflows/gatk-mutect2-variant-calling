@@ -96,11 +96,11 @@ Upload Parameters (object):
 
 */
 
-params.study_id = "PTC-SA"
+params.study_id = ""
 
 // aligned seq will be downloaded from SONG/SCORE
-params.tumour_aln_analysis_id = "8e110d35-63e7-4ff8-910d-3563e70ff82b"
-params.normal_aln_analysis_id = "14cb776f-0624-4ca7-8b77-6f0624bca75f"
+params.tumour_aln_analysis_id = ""
+params.normal_aln_analysis_id = ""
 
 // if provided local files will be used
 params.tumour_aln_metadata = "NO_FILE"
@@ -108,20 +108,16 @@ params.tumour_aln_cram = "NO_FILE"
 params.normal_aln_metadata = "NO_FILE"
 params.normal_aln_cram = "NO_FILE"
 
-// params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
-params.ref_fa = "/home/ubuntu/sanger-wxs-jobs/reference/GRCh38_hla_decoy_ebv/GRCh38_hla_decoy_ebv.fa"
+params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
 
 params.mutect2_scatter_interval_files = "assets/mutect2.intervals/*.interval_list"
 params.bqrs_recal_grouping_file = "assets/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv"
 params.bqrs_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv"
 
 // Allele frequency only, pass-only gnomAD vcf file
-params.germline_resource_vcfs = [
-    // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
-    "/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.hg38.vcf.gz"
-]
+params.germline_resource_vcfs = []  // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
 
-params.contamination_variants = "/home/ubuntu//gatk/resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz"
+params.contamination_variants = ""
 
 params.api_token = ""
 params.song_url = ""
@@ -174,13 +170,6 @@ bqsr_params = [
     'ref_dict': params.ref_dict,
     'ref_fa': params.ref_fa,
     *:(params.bqsr ?: [:])
-]
-
-splitIntervals_params = [
-    'cpus': params.cpus,
-    'mem': params.mem,
-    'ref_fa': params.ref_fa,
-    *:(params.splitIntervals ?: [:])
 ]
 
 mutect2_params = [

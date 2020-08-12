@@ -1,0 +1,13 @@
+{
+  "study_id": "OCCAMS-GB",
+  "tumour_aln_analysis_id": "c35e2b50-9063-42b4-9e2b-509063d2b466",
+  "normal_aln_analysis_id": "2f394b4d-d717-4652-b94b-4dd7171652df",
+  "ref_fa": "/home/ubuntu/reference/GRCh38_hla_decoy_ebv.fa",
+  "germline_resource_vcfs": ["/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.hg38.vcf.gz"],
+  "contamination_variants": "/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz",
+  "cpus": 2,
+  "mem": 6,
+  "calculateContamination": {
+    "mem": 10
+  }
+}

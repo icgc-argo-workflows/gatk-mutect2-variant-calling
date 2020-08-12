@@ -1,0 +1,8 @@
+{
+  "study_id": "PTC-SA",
+  "tumour_aln_analysis_id": "8e110d35-63e7-4ff8-910d-3563e70ff82b",
+  "normal_aln_analysis_id": "14cb776f-0624-4ca7-8b77-6f0624bca75f",
+  "ref_fa": "/home/ubuntu/reference/GRCh38_hla_decoy_ebv.fa",
+  "germline_resource_vcfs": ["/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.hg38.vcf.gz"],
+  "contamination_variants": "/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz"
+}
