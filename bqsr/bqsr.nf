@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-nextflow.preview.dsl = 2
+nextflow.enable.dsl = 2
 name = 'gatk-bqsr'
 short_name = 'bqsr'
 version = '4.1.8.0-1.0-dev'
