@@ -8,6 +8,12 @@
   "contamination_variants": "/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz",
   "cpus": 2,
   "mem": 6,
+  "download":{
+    "song_cpus":2,
+    "song_mem":2,
+    "score_cpus":3,
+    "score_mem":9
+  },
   "calculateContamination": {
     "mem": 10
   }
