@@ -110,7 +110,7 @@ params.normal_aln_cram = "NO_FILE"
 
 params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
 
-params.mutect2_scatter_interval_files = "assets/mutect2.intervals/*.interval_list"
+params.mutect2_scatter_interval_files = "assets/mutect2.scatter_by_chr/chr*.interval_list"
 params.bqrs_recal_grouping_file = "assets/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv"
 params.bqrs_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv"
 

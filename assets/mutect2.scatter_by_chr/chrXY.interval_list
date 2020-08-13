@@ -1,0 +1,4 @@
+@SQ	SN:chrX	LN:156040895	M5:2b3a55ff7f58eb308420c8a9b11cac50	AS:38	UR:/seq/references/Homo_sapiens_assembly38/v0/Homo_sapiens_assembly38.fasta	SP:Homo sapiens
+@SQ	SN:chrY	LN:57227415	M5:ce3e31103314a704255f3cd90369ecce	AS:38	UR:/seq/references/Homo_sapiens_assembly38/v0/Homo_sapiens_assembly38.fasta	SP:Homo sapiens
+chrX	1	156040895	+	.
+chrY	1	57227415	+	.
