@@ -130,15 +130,9 @@ params.mem = 4
 params.download = [:]
 params.bqsr = [:]
 
-params.bqsr_params = [
-    'dbsnp_vcf_gz': 'NO_FILE',
-    'known_indels_sites_vcf_gzs': 'NO_FILE',
-    *:(params.bqsr ?: [:])
-]
-
 params.mutect2_params = [
-    'germline_resource': 'NO_FILE',
-    'pon': 'NO_FILE',
+    'cpus': params.cpus,
+    'mem': params.mem,
     *:(params.mutect2 ?: [:])
 ]
 
@@ -152,9 +146,7 @@ params.gatherPileupSummaries_params = [
 params.calculateContamination = [
     'variants_for_contamination': 'NO_FILE'
 ]
-params.filterAlignmentArtifacts = [
-    'bwa_mem_index_image': 'NO_FILE'
-]
+
 params.upload = [:]
 
 download_params = [
@@ -162,14 +154,6 @@ download_params = [
     'score_url': params.score_url ?: 'https://score.rdpc.cancercollaboratory.org',
     'api_token': params.api_token,
     *:(params.download ?: [:])
-]
-
-bqsr_params = [
-    'cpus': params.cpus,
-    'mem': params.mem,
-    'ref_dict': params.ref_dict,
-    'ref_fa': params.ref_fa,
-    *:(params.bqsr ?: [:])
 ]
 
 mutect2_params = [
@@ -187,16 +171,28 @@ calculateContamination_params = [
     *:(params.calculateContamination ?: [:])
 ]
 
+learnReadOrientationModel_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.learnReadOrientationModel ?: [:])
+]
+
+mergeVcfs_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.mergeVcfs ?: [:])
+]
+
+mergeMutectStats_params = [
+    'cpus': params.cpus,
+    'mem': params.mem,
+    *:(params.mergeMutectStats ?: [:])
+]
+
 filterMutectCalls_params = [
     'cpus': params.cpus,
     'mem': params.mem,
     *:(params.filterMutectCalls ?: [:])
-]
-
-filterAlignmentArtifacts_params = [
-    'cpus': params.cpus,
-    'mem': params.mem,
-    *:(params.calculateContamination ?: [:])
 ]
 
 upload_params = [
@@ -213,10 +209,10 @@ upload_params = [
 
 include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
-include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.1/tools/gatk-mutect2/gatk-mutect2'
-include { gatkLearnReadOrientationModel as learnROM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model'
-include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs'
-include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats'
+include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.1/tools/gatk-mutect2/gatk-mutect2' params(mutect2_params)
+include { gatkLearnReadOrientationModel as learnROM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model' params(learnReadOrientationModel_params)
+include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs' params(mergeVcfs_params)
+include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats' params(mergeMutectStats_params)
 include { calculateContamination as calCont } from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
 include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
