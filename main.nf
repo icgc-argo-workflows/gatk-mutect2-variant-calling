@@ -217,6 +217,7 @@ include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com
 include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats' params(mergeMutectStats_params)
 include { calculateContamination as calCont } from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
+include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.2.2.0/tools/payload-gen-variant-calling/payload-gen-variant-calling" params(payloadGenVariantCall_params)
 include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
 include { cleanupWorkdir as cleanup } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
@@ -260,11 +261,13 @@ workflow M2 {
             dnldT(study_id, tumour_aln_analysis_id)
             tumour_aln_seq = dnldT.out.files.flatten().first()
             tumour_aln_seq_idx = dnldT.out.files.flatten().last()
+            tumour_aln_meta = dnldT.out.song_analysis
 
             // download normal aligned seq and metadata from song/score (analysis type: sequencing_alignment)
             dnldN(study_id, normal_aln_analysis_id)
             normal_aln_seq = dnldN.out.files.flatten().first()
             normal_aln_seq_idx = dnldN.out.files.flatten().last()
+            normal_aln_meta = dnldN.out.song_analysis
         } else if (
             tumour_aln_metadata != 'NO_FILE' && \
             tumour_aln_cram != 'NO_FILE' && \
@@ -274,8 +277,10 @@ workflow M2 {
             local_mode = true
             tumour_aln_seq = file(tumour_aln_cram)
             tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai']))
+            tumour_aln_meta = file(tumour_aln_metadata)
             normal_aln_seq = file(normal_aln_cram)
             normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai']))
+            normal_aln_meta = file(normal_aln_metadata)
         } else {
             exit 1, "To download input aligned seq files from SONG/SCORE, please provide `params.tumour_aln_analysis_id` and `params.normal_aln_analysis_id`.\n" +
                 "Or please provide `params.tumour_aln_metadata`, `params.tumour_aln_cram`, `params.normal_aln_metadata` and `params.normal_aln_cram` to use local files as input."
@@ -386,8 +391,14 @@ workflow M2 {
             ''  // nothing for m2_extra_filtering_args
         )
 
-        // genPayloadVariant
+        // TODO: split filtered calls into two VCFs: SNV_MNV and Indel
 
+        // genPayloadVariant
+        pGenVarSnv(
+            normal_aln_meta, tumour_aln_meta,
+            filterMC.out.filtered_vcf.concat(filterMC.out.filtered_vcf_tbi).collect(),
+            name, short_name, version
+        )
         // uploadVariant
 
         // genPayloadQC
