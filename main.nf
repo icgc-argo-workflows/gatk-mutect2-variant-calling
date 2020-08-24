@@ -108,11 +108,13 @@ params.tumour_aln_cram = "NO_FILE"
 params.normal_aln_metadata = "NO_FILE"
 params.normal_aln_cram = "NO_FILE"
 
+params.perform_bqsr = false
+
 params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
 
 params.mutect2_scatter_interval_files = "assets/mutect2.scatter_by_chr/chr*.interval_list"
-params.bqrs_recal_grouping_file = "assets/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv"
-params.bqrs_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv"
+params.bqsr_recal_grouping_file = "assets/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv"
+params.bqsr_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv"
 
 // Allele frequency only, pass-only gnomAD vcf file
 params.germline_resource_vcfs = []  // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
@@ -237,34 +239,32 @@ workflow M2 {
         normal_aln_metadata
         normal_aln_cram
         mutect2_scatter_interval_files
-        bqrs_recal_grouping_file
-        bqrs_apply_grouping_file
+        perform_bqsr
+        bqsr_recal_grouping_file
+        bqsr_apply_grouping_file
 
     main:
         local_mode = false
+
+        tumour_aln_seq = Channel.from()
+        tumour_aln_seq_idx = Channel.from()
+        normal_aln_seq = Channel.from()
+        normal_aln_seq_idx = Channel.from()
 
         Channel
             .fromPath(mutect2_scatter_interval_files, checkIfExists: true)
             .set{ mutect2_scatter_interval_files_ch }
 
-        Channel
-            .fromPath(bqrs_recal_grouping_file)
-            .splitCsv()
-            .map{ row -> tuple(row[0].toInteger(), row[1].trim()) }
-            .set{ bqrs_recal_grouping_ch }
-
-        Channel
-            .fromPath(bqrs_apply_grouping_file)
-            .splitCsv()
-            .map{ row -> tuple(row[0].toInteger(), row[1].trim()) }
-            .set{ bqrs_apply_grouping_ch }
-
         if (tumour_aln_analysis_id && normal_aln_analysis_id) {
             // download tumour aligned seq and metadata from song/score (analysis type: sequencing_alignment)
             dnldT(study_id, tumour_aln_analysis_id)
+            tumour_aln_seq = dnldT.out.files.flatten().first()
+            tumour_aln_seq_idx = dnldT.out.files.flatten().last()
 
             // download normal aligned seq and metadata from song/score (analysis type: sequencing_alignment)
             dnldN(study_id, normal_aln_analysis_id)
+            normal_aln_seq = dnldN.out.files.flatten().first()
+            normal_aln_seq_idx = dnldN.out.files.flatten().last()
         } else if (
             tumour_aln_metadata != 'NO_FILE' && \
             tumour_aln_cram != 'NO_FILE' && \
@@ -272,43 +272,68 @@ workflow M2 {
             normal_aln_cram != 'NO_FILE'
         ) {
             local_mode = true
+            tumour_aln_seq = file(tumour_aln_cram)
+            tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai']))
+            normal_aln_seq = file(normal_aln_cram)
+            normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai']))
         } else {
             exit 1, "To download input aligned seq files from SONG/SCORE, please provide `params.tumour_aln_analysis_id` and `params.normal_aln_analysis_id`.\n" +
                 "Or please provide `params.tumour_aln_metadata`, `params.tumour_aln_cram`, `params.normal_aln_metadata` and `params.normal_aln_cram` to use local files as input."
         }
 
-        // BQSR Tumour
-        bqsrT(
-            dnldT.out.files.flatten().first(),  // aln seq
-            dnldT.out.files.flatten().last(),   // aln idx
-            ref_fa,
-            ref_fa_2nd,
-            germline_resource_vcfs,  // use gnomAD as known_sites
-            germline_resource_indices,
-            bqrs_recal_grouping_ch,
-            bqrs_apply_grouping_ch,
-            'tumour.recalibrated_bam'
-        )
 
-        // BQSR Normal
-        bqsrN(
-            dnldN.out.files.flatten().first(),  // aln seq
-            dnldN.out.files.flatten().last(),   // aln idx
-            ref_fa,
-            ref_fa_2nd,
-            germline_resource_vcfs,  // use gnomAD as known_sites
-            germline_resource_indices,
-            bqrs_recal_grouping_ch,
-            bqrs_apply_grouping_ch,
-            'normal.recalibrated_bam'
-        )
+        if (perform_bqsr) {
+
+            Channel
+                .fromPath(bqsr_recal_grouping_file)
+                .splitCsv()
+                .map{ row -> tuple(row[0].toInteger(), row[1].trim()) }
+                .set{ bqsr_recal_grouping_ch }
+
+            Channel
+                .fromPath(bqsr_apply_grouping_file)
+                .splitCsv()
+                .map{ row -> tuple(row[0].toInteger(), row[1].trim()) }
+                .set{ bqsr_apply_grouping_ch }
+
+            // BQSR Tumour
+            bqsrT(
+                tumour_aln_seq,  // aln seq
+                tumour_aln_seq_idx,   // aln idx
+                ref_fa,
+                ref_fa_2nd,
+                germline_resource_vcfs,  // use gnomAD as known_sites
+                germline_resource_indices,
+                bqsr_recal_grouping_ch,
+                bqsr_apply_grouping_ch,
+                'tumour.recalibrated_bam'
+            )
+            tumour_aln_seq = bqsrT.out.bqsr_bam
+            tumour_aln_seq_idx = bqsrT.out.bqsr_bam_bai
+
+            // BQSR Normal
+            bqsrN(
+                normal_aln_seq,  // aln seq
+                normal_aln_seq_idx,   // aln idx
+                ref_fa,
+                ref_fa_2nd,
+                germline_resource_vcfs,  // use gnomAD as known_sites
+                germline_resource_indices,
+                bqsr_recal_grouping_ch,
+                bqsr_apply_grouping_ch,
+                'normal.recalibrated_bam'
+            )
+            normal_aln_seq = bqsrN.out.bqsr_bam
+            normal_aln_seq_idx = bqsrN.out.bqsr_bam_bai
+
+        }
 
         // Mutect2
         Mutect2(
-            bqsrT.out.bqsr_bam,
-            bqsrT.out.bqsr_bam_bai,
-            bqsrN.out.bqsr_bam,
-            bqsrN.out.bqsr_bam_bai,
+            tumour_aln_seq,
+            tumour_aln_seq_idx,
+            normal_aln_seq,
+            normal_aln_seq_idx,
             ref_fa,
             ref_fa_2nd.collect(),
             germline_resource_vcfs.collect(),
@@ -324,7 +349,7 @@ workflow M2 {
         // mergeVcfs
         mergeVcfs(
             Mutect2.out.output_vcf.collect(),
-            dnldT.out.files.flatten().first().name  // basename of output
+            tumour_aln_seq.name  // use tumour seq basename for output
         )
 
         // mergeMS
@@ -335,10 +360,10 @@ workflow M2 {
 
         // calCont
         calCont(
-            bqsrT.out.bqsr_bam,
-            bqsrT.out.bqsr_bam_bai,
-            bqsrN.out.bqsr_bam,
-            bqsrN.out.bqsr_bam_bai,
+            tumour_aln_seq,
+            tumour_aln_seq_idx,
+            normal_aln_seq,
+            normal_aln_seq_idx,
             ref_fa,
             ref_fa_2nd,
             ref_fa_dict,
@@ -402,7 +427,8 @@ workflow {
         params.normal_aln_metadata,
         params.normal_aln_cram,
         params.mutect2_scatter_interval_files,
-        params.bqrs_recal_grouping_file,
-        params.bqrs_apply_grouping_file
+        params.perform_bqsr,
+        params.bqsr_recal_grouping_file,
+        params.bqsr_apply_grouping_file
     )
 }
