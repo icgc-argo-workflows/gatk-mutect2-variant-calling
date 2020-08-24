@@ -108,7 +108,7 @@ params.tumour_aln_cram = "NO_FILE"
 params.normal_aln_metadata = "NO_FILE"
 params.normal_aln_cram = "NO_FILE"
 
-params.perform_bqsr = False
+params.perform_bqsr = false
 
 params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
 
@@ -246,10 +246,10 @@ workflow M2 {
     main:
         local_mode = false
 
-        tumour_aln_seq = Channel.create()
-        tumour_aln_seq_idx = Channel.create()
-        normal_aln_seq = Channel.create()
-        normal_aln_seq_idx = Channel.create()
+        tumour_aln_seq = Channel.from()
+        tumour_aln_seq_idx = Channel.from()
+        normal_aln_seq = Channel.from()
+        normal_aln_seq_idx = Channel.from()
 
         Channel
             .fromPath(mutect2_scatter_interval_files, checkIfExists: true)
@@ -282,7 +282,7 @@ workflow M2 {
         }
 
 
-        if perform_bqsr {
+        if (perform_bqsr) {
 
             Channel
                 .fromPath(bqsr_recal_grouping_file)
