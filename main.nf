@@ -152,8 +152,8 @@ params.calculateContamination = [
 params.upload = [:]
 
 download_params = [
-    'song_url': params.song_url ?: 'https://song.rdpc.cancercollaboratory.org',
-    'score_url': params.score_url ?: 'https://score.rdpc.cancercollaboratory.org',
+    'song_url': params.song_url,
+    'score_url': params.score_url,
     'api_token': params.api_token,
     *:(params.download ?: [:])
 ]
@@ -435,7 +435,13 @@ workflow M2 {
 
         // upSuppl
 
-        // cleanup
+        // cleanup, needs a bit more work here to deal with bqsr files
+        if (params.cleanup && !local_mode) {
+            cleanup(
+                dnldT.out.files.concat(dnldN.out).collect(),
+                upSnv.out.analysis_id.concat(upIndel.out.analysis_id).collect()
+            )
+        }
 
 }
 
