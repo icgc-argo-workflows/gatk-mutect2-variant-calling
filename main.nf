@@ -395,7 +395,7 @@ workflow M2 {
         excIndel (
             filterMC.out.filtered_vcf,
             filterMC.out.filtered_vcf_tbi,
-            null,  // variant type to include
+            '',  // variant type to include
             'INDEL',  // variant type to exclude
             'mutect2-snv'
         )
@@ -404,7 +404,7 @@ workflow M2 {
             filterMC.out.filtered_vcf,
             filterMC.out.filtered_vcf_tbi,
             'INDEL',  // variant type to include
-            null,  // variant type to exclude
+            '',  // variant type to exclude
             'mutect2-indel'
         )
 
