@@ -217,7 +217,8 @@ include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com
 include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats' params(mergeMutectStats_params)
 include { calculateContamination as calCont } from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
-include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.2.2.0/tools/payload-gen-variant-calling/payload-gen-variant-calling" params(payloadGenVariantCall_params)
+include { gatkSelectVariants as excIndel; gatkSelectVariants as selIndel } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-select-variants.4.1.8.0-1.0/tools/gatk-select-variants/gatk-select-variants'
+include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.2.2.0/tools/payload-gen-variant-calling/payload-gen-variant-calling"
 include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
 include { cleanupWorkdir as cleanup } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
@@ -391,14 +392,36 @@ workflow M2 {
             ''  // nothing for m2_extra_filtering_args
         )
 
-        // TODO: split filtered calls into two VCFs: SNV_MNV and Indel
+        excIndel (
+            filterMC.out.filtered_vcf,
+            filterMC.out.filtered_vcf_tbi,
+            null,  // variant type to include
+            'INDEL',  // variant type to exclude
+            'mutect2-snv'
+        )
 
-        // genPayloadVariant
+        selIndel (
+            filterMC.out.filtered_vcf,
+            filterMC.out.filtered_vcf_tbi,
+            'INDEL',  // variant type to include
+            null,  // variant type to exclude
+            'mutect2-indel'
+        )
+
+        // genPayloadSNV
         pGenVarSnv(
             normal_aln_meta, tumour_aln_meta,
-            filterMC.out.filtered_vcf.concat(filterMC.out.filtered_vcf_tbi).collect(),
+            excIndel.out.output.collect(),
             name, short_name, version
         )
+
+        // genPayloadIndel
+        pGenVarIndel(
+            normal_aln_meta, tumour_aln_meta,
+            selIndel.out.output.collect(),
+            name, short_name, version
+        )
+
         // uploadVariant
 
         // genPayloadQC
