@@ -23,7 +23,7 @@
  */
 
 nextflow.preview.dsl = 2
-version = '4.1.8.0-2.0'
+version = '4.1.8.0-3.0'
 
 params.ref_genome_dict = "NO_FILE"
 params.input_pileup = "NO_FILE"
