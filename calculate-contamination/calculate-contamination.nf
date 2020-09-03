@@ -33,7 +33,6 @@ params.match_aln_seq = "NO_FILE"
 params.ref_genome_fa = "NO_FILE"
 params.variants_resources = "NO_FILE"
 params.interval_files = []
-params.tumour_normal = ""
 
 params.getPileupSummaries = [:]
 params.gatherPileupSummaries = [:]
@@ -75,7 +74,6 @@ workflow calculateContamination {
         variants_resources
         variants_resources_indices
         interval_files
-        tumour_normal
 
     main:
         // getPS
@@ -95,37 +93,34 @@ workflow calculateContamination {
             getPS.out.pileups_metrics.collect()
         )
 
-        if (match_aln_seq.name != 'NO_FILE') {
-            // getPSM
-            getPSM(
-                match_aln_seq,
-                match_aln_seq_idx.collect(),
-                ref_genome_fa,
-                ref_genome_fa_2nd.collect(),
-                variants_resources.collect(),
-                variants_resources_indices.collect(),
-                interval_files.flatten()
-            )
+        // getPSM
+        getPSM(
+            match_aln_seq,
+            match_aln_seq_idx.collect(),
+            ref_genome_fa,
+            ref_genome_fa_2nd.collect(),
+            variants_resources.collect(),
+            variants_resources_indices.collect(),
+            interval_files.flatten()
+        )
 
-            // gatherPSM
-            gatherPSM(
-                ref_genome_fa_dict.collect(),
-                getPSM.out.pileups_metrics.collect()
-            )
-            
-            // calCont for tumour with matched normal
-            calContT(
-                gatherPS.out.merged_pileups_metrics,  // tumour
-                gatherPSM.out.merged_pileups_metrics,  // normal
-            )
+        // gatherPSM
+        gatherPSM(
+            ref_genome_fa_dict.collect(),
+            getPSM.out.pileups_metrics.collect()
+        )
+        
+        // calCont for tumour with matched normal
+        calContT(
+            gatherPS.out.merged_pileups_metrics,  // tumour
+            gatherPSM.out.merged_pileups_metrics  // normal
+        )
 
-            // calCont for normal
-            calContN(
-                gatherPSM.out.merged_pileups_metrics,  // normal
-                Channel.from(),  // empty channel
-            )
-
-        }
+        // calCont for normal
+        calContN(
+            gatherPSM.out.merged_pileups_metrics,  // normal
+            Channel.fromPath("NO_FILE") // empty channel
+        )
 
     emit:
         tumour_segmentation_metrics = calContT.out.segmentation_metrics

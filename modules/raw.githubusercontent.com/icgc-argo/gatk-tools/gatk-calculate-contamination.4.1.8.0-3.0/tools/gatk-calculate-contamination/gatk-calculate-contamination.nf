@@ -22,12 +22,11 @@
  *        Linda Xiang  <linda.xiang@oicr.on.ca>
  */
 
-nextflow.preview.dsl = 2
-version = '4.1.8.0-2.0'
+nextflow.enable.dsl = 2
+version = '4.1.8.0-3.0'
 
-params.tumour_pileups = "NO_FILE"
-params.normal_pileups = "NO_FILE"
-params.tumour_normal = ""
+params.seq_pileups = "NO_FILE"
+params.matched_pileups = "NO_FILE"
 
 params.container_version = ""
 params.cpus = 1
@@ -41,9 +40,8 @@ process gatkCalculateContamination {
   publishDir "output/calculateContamination"
 
   input:
-    path tumour_pileups
-    path normal_pileups
-    val tumour_normal
+    path seq_pileups
+    path matched_pileups
 
   output:
     path "*.contamination_metrics", emit: contamination_metrics
@@ -51,19 +49,11 @@ process gatkCalculateContamination {
 
   script:
 
-    arg_normal_pileups = normal_pileups.name == 'NO_FILE' ? "" : "-matched ${normal_pileups}"
-    arg_tumour_normal = tumour_normal == "" ? "" : "-s ${tumour_normal}"
+    arg_matched_pileups = matched_pileups.name == 'NO_FILE' ? "" : "-matched ${matched_pileups}"
 
     """
-    set -euxo pipefail
-    if [ "${tumour_normal}" != "normal" ] && [ "${tumour_normal}" != "tumour" ] && [ "${tumour_normal}" != "" ]; then
-      echo "parameter 'tumour_normal' must be either 'tumour' or 'normal' if provided"
-      exit 1
-    fi
-
-    gatk-calculate-contamination.py -I ${tumour_pileups} \
-                      ${arg_normal_pileups} \
-                      -j ${(int) (params.mem * 1000)} \
-                      ${arg_tumour_normal}
+    gatk-calculate-contamination.py -I ${seq_pileups} \
+                      ${arg_matched_pileups} \
+                      -j ${(int) (params.mem * 1000)} 
     """
 }
