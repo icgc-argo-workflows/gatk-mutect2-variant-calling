@@ -60,7 +60,7 @@ calculateContamination_params = [
 // Include all modules and pass params
 include { gatkGetPileupSummaries as getPS; gatkGetPileupSummaries as getPSM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.8.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
 include { gatkGatherPileupSummaries as gatherPS; gatkGatherPileupSummaries as gatherPSM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.8.0-3.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
-include { gatkCalculateContamination as calCont } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-2.0/tools/gatk-calculate-contamination/gatk-calculate-contamination' params(calculateContamination_params)
+include { gatkCalculateContamination as calContT; gatkCalculateContamination as calContN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-3.0/tools/gatk-calculate-contamination/gatk-calculate-contamination' params(calculateContamination_params)
 
 
 workflow calculateContamination {
@@ -113,24 +113,25 @@ workflow calculateContamination {
                 getPSM.out.pileups_metrics.collect()
             )
             
-            // calCont
-            calCont(
-                gatherPS.out.merged_pileups_metrics,
-                gatherPSM.out.merged_pileups_metrics,
-                'tumour'
+            // calCont for tumour with matched normal
+            calContT(
+                gatherPS.out.merged_pileups_metrics,  // tumour
+                gatherPSM.out.merged_pileups_metrics,  // normal
             )
-        } else {
-            // calCont
-            calCont(
-                gatherPS.out.merged_pileups_metrics,
-                file("NO_FILE"),
-                tumour_normal
+
+            // calCont for normal
+            calContN(
+                gatherPSM.out.merged_pileups_metrics,  // normal
+                Channel.from(),  // empty channel
             )
+
         }
 
     emit:
-        segmentation_metrics = calCont.out.segmentation_metrics
-        contamination_metrics = calCont.out.contamination_metrics
+        tumour_segmentation_metrics = calContT.out.segmentation_metrics
+        tumour_contamination_metrics = calContT.out.contamination_metrics
+        normal_segmentation_metrics = calContN.out.segmentation_metrics
+        normal_contamination_metrics = calContN.out.contamination_metrics
 
 }
 
