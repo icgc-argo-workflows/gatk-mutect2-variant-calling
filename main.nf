@@ -376,8 +376,7 @@ workflow M2 {
             ref_fa_dict,
             contamination_variants,
             contamination_variants_indices,
-            mutect2_scatter_interval_files_ch,
-            ""
+            mutect2_scatter_interval_files_ch
         )
 
         // filterMC
