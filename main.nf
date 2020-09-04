@@ -385,7 +385,7 @@ workflow M2 {
             mergeVcfs.out.output_tbi,
             ref_fa,
             ref_fa_2nd.collect(),
-            calCont.out.tumour_segmentation_metrics,
+            calCont.out.tumour_contamination_metrics,
             calCont.out.tumour_segmentation_metrics,
             learnROM.out.artifact_prior_table.collect(),
             mergeMS.out.merged_stats,
