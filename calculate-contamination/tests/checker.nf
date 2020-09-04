@@ -22,14 +22,13 @@
  *        Linda Xiang <linda.xiang@oicr.on.ca>
  */
 
-nextflow.preview.dsl = 2
+nextflow.enable.dsl = 2
 
 params.aln_seq = "NO_FILE"
 params.match_aln_seq = "NO_FILE"
 params.ref_genome_fa = "NO_FILE"
 params.variants_resources = "NO_FILE"
 params.interval_files = []
-params.tumour_normal = ""
 
 params.cpus = 2
 params.mem = 4
@@ -66,7 +65,6 @@ workflow {
       Channel.fromPath(getSecondaryFiles(params.ref_genome_fa, ['^dict'])).collect(),
       variants_resources.collect(),
       variants_resources_indices.collect(),
-      interval_files.flatten(),
-      params.tumour_normal
+      interval_files.flatten()
     )
 }
