@@ -437,7 +437,7 @@ workflow M2 {
         // genPayloadQc
         pGenQc(
             normal_aln_meta, tumour_aln_meta,
-            prepQC.out.qc_metrics_tar.collect(),
+            prepQc.out.qc_metrics_tar.collect(),
             name, short_name, version
         )
 
