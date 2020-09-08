@@ -219,7 +219,7 @@ include { calculateContamination as calCont } from './calculate-contamination/ca
 include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
 include { gatkSelectVariants as excIndel; gatkSelectVariants as selIndel } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-select-variants.4.1.8.0-1.0/tools/gatk-select-variants/gatk-select-variants'
 include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.3.0.0/tools/payload-gen-variant-calling/payload-gen-variant-calling"
-include { prepMutect2Qc as prepQC } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.0.0/tools/prep-mutect2-qc/prep-mutect2-qc'
+include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.0.0/tools/prep-mutect2-qc/prep-mutect2-qc'
 include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
 include { songScoreUpload as upSnv; songScoreUpload as upIndel; songScoreUpload as upQc} from './song-score-utils/song-score-upload' params(upload_params)
 include { cleanupWorkdir as cleanup } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
@@ -427,16 +427,22 @@ workflow M2 {
         upSnv(study_id, pGenVarSnv.out.payload, pGenVarSnv.out.files_to_upload)
         upIndel(study_id, pGenVarIndel.out.payload, pGenVarIndel.out.files_to_upload)
 
-        // prepQC
-        prepQC(calCont.out.collect())
+        // prepQc
+        prepQc(calCont.out.tumour_contamination_metrics.concat(
+                    calCont.out.tumour_segmentation_metrics,
+                    calCont.out.normal_contamination_metrics,
+                    calCont.out.normal_segmentation_metrics
+               ).collect())
 
-        // genPayloadQC
+        // genPayloadQc
+        pGenQc(
+            normal_aln_meta, tumour_aln_meta,
+            prepQC.out.qc_metrics_tar.collect(),
+            name, short_name, version
+        )
 
-        // upQC
-
-        // genSuppl
-
-        // upSuppl
+        // upQc
+        upQc(study_id, pGenQc.out.payload, pGenQc.out.files_to_upload)
 
         // cleanup, needs a bit more work here to deal with bqsr files
         if (params.cleanup && !local_mode) {
