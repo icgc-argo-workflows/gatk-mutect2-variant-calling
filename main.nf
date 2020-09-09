@@ -229,7 +229,7 @@ include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pG
 include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.0.0/tools/prep-mutect2-qc/prep-mutect2-qc'
 include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
 include { songScoreUpload as upSnv; songScoreUpload as upIndel; songScoreUpload as upQc} from './song-score-utils/song-score-upload' params(upload_params)
-include { cleanupWorkdir as cleanup; cleanupWorkdir as cleanupBqsr } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
+include { cleanupWorkdir as cleanupM2; cleanupWorkdir as cleanupBqsr } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
 
 workflow M2 {
@@ -456,7 +456,7 @@ workflow M2 {
 
         // cleanup, skip cleanup when running in local mode
         if (params.cleanup && !local_mode) {
-            cleanup(
+            cleanupM2(
                 dnldT.out.files.concat(
                     dnldN.out, Mutect2.out, learnROM.out, mergeVcfs.out, mergeMS.out, calCont.out,
                     filterMC.out, excIndel.out, selIndel.out
