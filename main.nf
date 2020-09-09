@@ -243,8 +243,8 @@ workflow M2 {
         ref_fa_img
         germline_resource_vcfs
         germline_resource_indices
-        panel_of_normals,
-        panel_of_normals_idx,
+        panel_of_normals
+        panel_of_normals_idx
         contamination_variants
         contamination_variants_indices
         tumour_aln_analysis_id
