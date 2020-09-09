@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) 2019-2020, Ontario Institute for Cancer Research (OICR).
- *                                                                                                               
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
@@ -19,34 +19,41 @@
 
 /*
  * author Junjun Zhang <junjun.zhang@oicr.on.ca>
- *        Linda Xiang <linda.xiang@oicr.on.ca>
+ *        Linda Xiang  <linda.xiang@oicr.on.ca>
  */
 
 nextflow.enable.dsl = 2
-version = '0.1.0.0'
+version = '4.1.8.0-3.1'
 
-params.qc_files = ""
+params.seq_pileups = "NO_FILE"
+params.matched_pileups = "NO_FILE"
+
 params.container_version = ""
 params.cpus = 1
-params.mem = 2  // in GB
-params.publish_dir = ""
+params.mem = 1  // in GB
 
 
-process prepMutect2Qc {
-  container "quay.io/icgc-argo/prep-mutect2-qc:prep-mutect2-qc.${params.container_version ?: version}"
+process gatkCalculateContamination {
+  container "quay.io/icgc-argo/gatk-calculate-contamination:gatk-calculate-contamination.${params.container_version ?: version}"
   cpus params.cpus
   memory "${params.mem} GB"
-  publishDir "${params.publish_dir}/${task.process.replaceAll(':', '_')}", enabled: "${params.publish_dir ? true : ''}"
+  //publishDir "output/calculateContamination"
 
   input:
-    path qc_files
+    path seq_pileups
+    path matched_pileups
 
   output:
-    path "*_metrics.tgz", emit: qc_metrics_tar
+    path "*.contamination_metrics", emit: contamination_metrics
+    path "*.segmentation_metrics", emit: segmentation_metrics
 
   script:
+
+    arg_matched_pileups = matched_pileups.name == 'NO_FILE' ? "" : "-matched ${matched_pileups}"
+
     """
-    prep-mutect2-qc.py \
-      -r ${qc_files}
+    gatk-calculate-contamination.py -I ${seq_pileups} \
+                      ${arg_matched_pileups} \
+                      -j ${(int) (params.mem * 1000)} 
     """
 }

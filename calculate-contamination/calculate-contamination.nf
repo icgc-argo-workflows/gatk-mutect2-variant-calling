@@ -57,9 +57,9 @@ calculateContamination_params = [
 ]
 
 // Include all modules and pass params
-include { gatkGetPileupSummaries as getPS; gatkGetPileupSummaries as getPSM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.8.0-2.0/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
+include { gatkGetPileupSummaries as getPS; gatkGetPileupSummaries as getPSM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-get-pileup-summaries.4.1.8.0-2.1/tools/gatk-get-pileup-summaries/gatk-get-pileup-summaries' params(getPileupSummaries_params)
 include { gatkGatherPileupSummaries as gatherPS; gatkGatherPileupSummaries as gatherPSM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-gather-pileup-summaries.4.1.8.0-3.0/tools/gatk-gather-pileup-summaries/gatk-gather-pileup-summaries' params(gatherPileupSummaries_params)
-include { gatkCalculateContamination as calContT; gatkCalculateContamination as calContN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-3.0/tools/gatk-calculate-contamination/gatk-calculate-contamination' params(calculateContamination_params)
+include { gatkCalculateContamination as calContT; gatkCalculateContamination as calContN } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-calculate-contamination.4.1.8.0-3.1/tools/gatk-calculate-contamination/gatk-calculate-contamination' params(calculateContamination_params)
 
 
 workflow calculateContamination {

@@ -18,35 +18,51 @@
  */
 
 /*
- * author Junjun Zhang <junjun.zhang@oicr.on.ca>
- *        Linda Xiang <linda.xiang@oicr.on.ca>
+ * Author Junjun Zhang <junjun.zhang@oicr.on.ca>
  */
 
 nextflow.enable.dsl = 2
-version = '0.1.0.0'
+version = '0.3.1.0'
 
-params.qc_files = ""
-params.container_version = ""
+params.normal_analysis = ""
+params.tumour_analysis = ""
+params.files_to_upload = []
+params.wf_name = ""
+params.wf_short_name = ""
+params.wf_version = ""
+params.container_version = ''
 params.cpus = 1
-params.mem = 2  // in GB
+params.mem = 1  // GB
 params.publish_dir = ""
 
-
-process prepMutect2Qc {
-  container "quay.io/icgc-argo/prep-mutect2-qc:prep-mutect2-qc.${params.container_version ?: version}"
+process payloadGenVariantCalling {
+  container "quay.io/icgc-argo/payload-gen-variant-calling:payload-gen-variant-calling.${params.container_version ?: version}"
   cpus params.cpus
   memory "${params.mem} GB"
   publishDir "${params.publish_dir}/${task.process.replaceAll(':', '_')}", enabled: "${params.publish_dir ? true : ''}"
 
   input:
-    path qc_files
+    path normal_analysis
+    path tumour_analysis
+    path files_to_upload
+    val wf_name
+    val wf_short_name
+    val wf_version
 
   output:
-    path "*_metrics.tgz", emit: qc_metrics_tar
+    path "*.payload.json", emit: payload
+    path "out/*{.tgz,.vcf.gz,.vcf.gz.tbi}", emit: files_to_upload
 
   script:
+    args_tumour_analysis = !tumour_analysis.empty() ? "-t ${tumour_analysis}" : ""
     """
-    prep-mutect2-qc.py \
-      -r ${qc_files}
+    payload-gen-variant-calling.py \
+         -f ${files_to_upload} \
+         -n ${normal_analysis} \
+         -r ${workflow.runName} \
+         -j ${workflow.sessionId} \
+         -w ${wf_name} \
+         -s ${wf_short_name} \
+         -v ${wf_version} ${args_tumour_analysis}
     """
 }
