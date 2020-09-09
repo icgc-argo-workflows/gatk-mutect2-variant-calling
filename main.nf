@@ -131,6 +131,13 @@ params.mem = 4
 
 params.download = [:]
 params.bqsr = [:]
+params.mutect2 = [:]
+params.ref_dict = ""
+params.gatherPileupSummaries = [:]
+params.learnReadOrientationModel = [:]
+params.mergeVcfs = [:]
+params.mergeMutectStats = [:]
+params.filterMutectCalls = [:]
 
 params.mutect2_params = [
     'cpus': params.cpus,
