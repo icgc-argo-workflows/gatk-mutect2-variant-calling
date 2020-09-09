@@ -108,7 +108,7 @@ params.tumour_aln_cram = "NO_FILE"
 params.normal_aln_metadata = "NO_FILE"
 params.normal_aln_cram = "NO_FILE"
 
-params.perform_bqsr = false
+params.perform_bqsr = true  // default to true
 
 params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
 
