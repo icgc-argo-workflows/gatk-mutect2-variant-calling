@@ -119,6 +119,8 @@ params.bqsr_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.g
 // Allele frequency only, pass-only gnomAD vcf file
 params.germline_resource_vcfs = []  // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
 
+params.panel_of_normals = "NO_FILE"  // optional PoN VCF file, for now we use GATK's public PoN based on 1000 genome project
+
 params.contamination_variants = ""
 
 params.api_token = ""
@@ -218,7 +220,7 @@ upload_params = [
 
 include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
-include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.1/tools/gatk-mutect2/gatk-mutect2' params(mutect2_params)
+include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.2/tools/gatk-mutect2/gatk-mutect2' params(mutect2_params)
 include { gatkLearnReadOrientationModel as learnROM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model' params(learnReadOrientationModel_params)
 include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs' params(mergeVcfs_params)
 include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats' params(mergeMutectStats_params)
@@ -241,6 +243,8 @@ workflow M2 {
         ref_fa_img
         germline_resource_vcfs
         germline_resource_indices
+        panel_of_normals,
+        panel_of_normals_idx,
         contamination_variants
         contamination_variants_indices
         tumour_aln_analysis_id
@@ -353,6 +357,8 @@ workflow M2 {
             ref_fa_2nd.collect(),
             germline_resource_vcfs.collect(),
             germline_resource_indices.collect(),
+            panel_of_normals,
+            panel_of_normals_idx,
             mutect2_scatter_interval_files_ch.flatten()
         )
 
@@ -479,6 +485,9 @@ workflow {
     germline_resource_vcfs = Channel.fromPath(params.germline_resource_vcfs)
     germline_resource_indices = germline_resource_vcfs.flatMap { v -> getSec(v, ['tbi']) }
 
+    panel_of_normals = Channel.fromPath(params.panel_of_normals)
+    panel_of_normals_idx = panel_of_normals.flatMap { v -> getSec(v, ['tbi']) }
+
     contamination_variants = Channel.fromPath(params.contamination_variants)
     contamination_variants_indices = contamination_variants.flatMap { v -> getSec(v, ['tbi']) }
 
@@ -490,6 +499,8 @@ workflow {
         Channel.fromPath(getSec(params.ref_fa, ['img'])),
         germline_resource_vcfs,
         germline_resource_indices,
+        panel_of_normals,
+        panel_of_normals_idx,
         contamination_variants,
         contamination_variants_indices,
         params.tumour_aln_analysis_id,

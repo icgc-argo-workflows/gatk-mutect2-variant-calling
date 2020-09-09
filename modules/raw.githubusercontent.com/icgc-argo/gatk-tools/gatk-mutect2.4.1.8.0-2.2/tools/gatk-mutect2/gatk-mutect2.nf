@@ -21,14 +21,15 @@
  * author Junjun Zhang <junjun.zhang@oicr.on.ca>
  */
 
-nextflow.preview.dsl = 2
-version = '4.1.8.0-2.1'
+nextflow.enable.dsl = 2
+version = '4.1.8.0-2.2'
 
 params.tumour_reads = "NO_FILE1"
 params.normal_reads = "NO_FILE2"
 params.interval_file = "NO_FILE3"
 params.ref_genome_fa = "NO_FILE4"
 params.germline_resource = "NO_FILE5"
+params.panel_of_normals = "NO_FILES6"
 
 params.container_version = ""
 params.cpus = 1
@@ -56,6 +57,7 @@ process gatkMutect2 {
   container "quay.io/icgc-argo/gatk-mutect2:gatk-mutect2.${params.container_version ?: version}"
   cpus params.cpus
   memory "${params.mem} GB"
+  //publishDir "output/mutect2"
 
   input:
     path tumour_reads
@@ -66,6 +68,8 @@ process gatkMutect2 {
     path ref_genome_secondary_file
     path germline_resource
     path germline_resource_idx
+    path panel_of_normals
+    path panel_of_normals_idx
     path interval_file
 
   output:
@@ -80,6 +84,7 @@ process gatkMutect2 {
     arg_interval_file = interval_file.name.startsWith('NO_FILE') ? "" : "-L ${interval_file}"
     arg_output_prefix = tumour_reads
     arg_germline_resource = germline_resource.name.startsWith('NO_FILE') ? "" : "-g ${germline_resource}"
+    arg_panel_of_normals = panel_of_normals.name.startsWith('NO_FILE') ? "" : "-p ${panel_of_normals}"
 
     """
     gatk-mutect2.py \
@@ -88,6 +93,9 @@ process gatkMutect2 {
       -t ${tumour_reads} -n ${normal_reads} \
       -O ${arg_output_prefix}.vcf.gz \
       -b ${arg_output_prefix}.bamout.bam \
-      -f ${arg_output_prefix}.f1r2.tar.gz ${arg_interval_file} ${arg_germline_resource}
+      -f ${arg_output_prefix}.f1r2.tar.gz \
+      ${arg_interval_file} \
+      ${arg_germline_resource} \
+      ${arg_panel_of_normals}
     """
 }
