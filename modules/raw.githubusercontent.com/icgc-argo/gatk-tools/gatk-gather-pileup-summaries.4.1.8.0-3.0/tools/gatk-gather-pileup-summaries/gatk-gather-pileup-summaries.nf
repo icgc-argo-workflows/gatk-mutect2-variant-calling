@@ -19,49 +19,38 @@
 
 /*
  * author Junjun Zhang <junjun.zhang@oicr.on.ca>
+ *        Linda Xiang  <linda.xiang@oicr.on.ca>
  */
 
 nextflow.preview.dsl = 2
-version = '4.1.8.0-2.0'
+version = '4.1.8.0-3.0'
 
-params.tumour_seq = ""
-params.ref_fa = ""
-params.bwa_mem_index_image = ""
-params.input_vcf = ""
-params.output_vcf_basename = ""
+params.ref_genome_dict = "NO_FILE"
+params.input_pileup = "NO_FILE"
 
 params.container_version = ""
 params.cpus = 1
 params.mem = 1  // in GB
 
 
-process gatkFilterAlignmentArtifacts {
-  container "quay.io/icgc-argo/gatk-filter-alignment-artifacts:gatk-filter-alignment-artifacts.${params.container_version ?: version}"
+process gatkGatherPileupSummaries {
+  container "quay.io/icgc-argo/gatk-gather-pileup-summaries:gatk-gather-pileup-summaries.${params.container_version ?: version}"
   cpus params.cpus
   memory "${params.mem} GB"
 
   input:
-    path tumour_seq
-    path tumour_seq_idx
-    path ref_fa
-    path ref_fa_2nd
-    path bwa_mem_index_image
-    path input_vcf
-    path input_vcf_idx
-    val output_vcf_basename
+    path ref_genome_dict
+    path input_pileup
+
 
   output:
-    path "${output_vcf_basename}.vcf.gz", emit: filtered_vcf
-    path "${output_vcf_basename}.vcf.gz.tbi", emit: filtered_vcf_idx
+    path "*.pileups_metrics.tsv", emit: merged_pileups_metrics
 
   script:
+
     """
-    gatk-filter-alignment-artifacts.py \
-                      -j ${(int) (params.mem * 1000)} \
-                      -I ${tumour_seq} \
-                      -V ${input_vcf} \
-                      -R ${ref_fa} \
-                      --bwa-mem-index-image ${bwa_mem_index_image} \
-                      -O ${output_vcf_basename}.vcf.gz
+    gatk-gather-pileup-summaries.py -j ${(int) (params.mem * 1000)} \
+                      -D ${ref_genome_dict} \
+                      -I ${input_pileup} 
     """
 }

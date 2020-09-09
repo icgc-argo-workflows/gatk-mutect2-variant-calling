@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) 2019-2020, Ontario Institute for Cancer Research (OICR).
- *
+ *                                                                                                               
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
@@ -19,38 +19,32 @@
 
 /*
  * author Junjun Zhang <junjun.zhang@oicr.on.ca>
- *        Linda Xiang  <linda.xiang@oicr.on.ca>
+ *        Linda Xiang <linda.xiang@oicr.on.ca>
  */
 
-nextflow.preview.dsl = 2
-version = '4.1.8.0-2.0'
+nextflow.enable.dsl = 2
+version = '0.1.0.0'
 
-params.ref_genome_dict = "NO_FILE"
-params.input_pileup = "NO_FILE"
-
+params.qc_files = ""
 params.container_version = ""
 params.cpus = 1
-params.mem = 1  // in GB
+params.mem = 2  // in GB
 
 
-process gatkGatherPileupSummaries {
-  container "quay.io/icgc-argo/gatk-gather-pileup-summaries:gatk-gather-pileup-summaries.${params.container_version ?: version}"
+process prepMutect2Qc {
+  container "quay.io/icgc-argo/prep-mutect2-qc:prep-mutect2-qc.${params.container_version ?: version}"
   cpus params.cpus
   memory "${params.mem} GB"
 
   input:
-    path ref_genome_dict
-    path input_pileup
-
+    path qc_files
 
   output:
-    path "*.pileups_metrics.tsv", emit: merged_pileups_metrics
+    path "*_metrics.tgz", emit: qc_metrics_tar
 
   script:
-
     """
-    gatk-gather-pileup-summaries.py -j ${(int) (params.mem * 1000)} \
-                      -D ${ref_genome_dict} \
-                      -I ${input_pileup} 
+    prep-mutect2-qc.py \
+      -r ${qc_files}
     """
 }

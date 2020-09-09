@@ -108,7 +108,7 @@ params.tumour_aln_cram = "NO_FILE"
 params.normal_aln_metadata = "NO_FILE"
 params.normal_aln_cram = "NO_FILE"
 
-params.perform_bqsr = false
+params.perform_bqsr = true  // default to true
 
 params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
 
@@ -131,6 +131,13 @@ params.mem = 4
 
 params.download = [:]
 params.bqsr = [:]
+params.mutect2 = [:]
+params.ref_dict = ""
+params.gatherPileupSummaries = [:]
+params.learnReadOrientationModel = [:]
+params.mergeVcfs = [:]
+params.mergeMutectStats = [:]
+params.filterMutectCalls = [:]
 
 params.mutect2_params = [
     'cpus': params.cpus,
@@ -152,8 +159,8 @@ params.calculateContamination = [
 params.upload = [:]
 
 download_params = [
-    'song_url': params.song_url ?: 'https://song.rdpc.cancercollaboratory.org',
-    'score_url': params.score_url ?: 'https://score.rdpc.cancercollaboratory.org',
+    'song_url': params.song_url,
+    'score_url': params.score_url,
     'api_token': params.api_token,
     *:(params.download ?: [:])
 ]
@@ -217,8 +224,12 @@ include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com
 include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats' params(mergeMutectStats_params)
 include { calculateContamination as calCont } from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
+include { gatkSelectVariants as excIndel; gatkSelectVariants as selIndel } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-select-variants.4.1.8.0-1.0/tools/gatk-select-variants/gatk-select-variants'
+include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.3.0.0/tools/payload-gen-variant-calling/payload-gen-variant-calling"
+include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.0.0/tools/prep-mutect2-qc/prep-mutect2-qc'
 include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
-include { cleanupWorkdir as cleanup } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
+include { songScoreUpload as upSnv; songScoreUpload as upIndel; songScoreUpload as upQc} from './song-score-utils/song-score-upload' params(upload_params)
+include { cleanupWorkdir as cleanupM2; cleanupWorkdir as cleanupBqsr } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
 
 
 workflow M2 {
@@ -260,11 +271,13 @@ workflow M2 {
             dnldT(study_id, tumour_aln_analysis_id)
             tumour_aln_seq = dnldT.out.files.flatten().first()
             tumour_aln_seq_idx = dnldT.out.files.flatten().last()
+            tumour_aln_meta = dnldT.out.song_analysis
 
             // download normal aligned seq and metadata from song/score (analysis type: sequencing_alignment)
             dnldN(study_id, normal_aln_analysis_id)
             normal_aln_seq = dnldN.out.files.flatten().first()
             normal_aln_seq_idx = dnldN.out.files.flatten().last()
+            normal_aln_meta = dnldN.out.song_analysis
         } else if (
             tumour_aln_metadata != 'NO_FILE' && \
             tumour_aln_cram != 'NO_FILE' && \
@@ -274,8 +287,10 @@ workflow M2 {
             local_mode = true
             tumour_aln_seq = file(tumour_aln_cram)
             tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai']))
+            tumour_aln_meta = file(tumour_aln_metadata)
             normal_aln_seq = file(normal_aln_cram)
             normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai']))
+            normal_aln_meta = file(normal_aln_metadata)
         } else {
             exit 1, "To download input aligned seq files from SONG/SCORE, please provide `params.tumour_aln_analysis_id` and `params.normal_aln_analysis_id`.\n" +
                 "Or please provide `params.tumour_aln_metadata`, `params.tumour_aln_cram`, `params.normal_aln_metadata` and `params.normal_aln_cram` to use local files as input."
@@ -369,8 +384,7 @@ workflow M2 {
             ref_fa_dict,
             contamination_variants,
             contamination_variants_indices,
-            mutect2_scatter_interval_files_ch,
-            ""
+            mutect2_scatter_interval_files_ch
         )
 
         // filterMC
@@ -379,26 +393,84 @@ workflow M2 {
             mergeVcfs.out.output_tbi,
             ref_fa,
             ref_fa_2nd.collect(),
-            calCont.out.contamination_metrics,
-            calCont.out.segmentation_metrics,
+            calCont.out.tumour_contamination_metrics,
+            calCont.out.tumour_segmentation_metrics,
             learnROM.out.artifact_prior_table.collect(),
             mergeMS.out.merged_stats,
             ''  // nothing for m2_extra_filtering_args
         )
 
-        // genPayloadVariant
+        excIndel (
+            filterMC.out.filtered_vcf,
+            filterMC.out.filtered_vcf_tbi,
+            '',  // variant type to include
+            'INDEL',  // variant type to exclude
+            'mutect2-snv'
+        )
 
-        // uploadVariant
+        selIndel (
+            filterMC.out.filtered_vcf,
+            filterMC.out.filtered_vcf_tbi,
+            'INDEL',  // variant type to include
+            '',  // variant type to exclude
+            'mutect2-indel'
+        )
 
-        // genPayloadQC
+        // genPayloadSNV
+        pGenVarSnv(
+            normal_aln_meta, tumour_aln_meta,
+            excIndel.out.output.collect(),
+            name, short_name, version
+        )
 
-        // upQC
+        // genPayloadIndel
+        pGenVarIndel(
+            normal_aln_meta, tumour_aln_meta,
+            selIndel.out.output.collect(),
+            name, short_name, version
+        )
 
-        // genSuppl
+        // prepQc
+        prepQc(calCont.out.tumour_contamination_metrics.concat(
+                    calCont.out.tumour_segmentation_metrics,
+                    calCont.out.normal_contamination_metrics,
+                    calCont.out.normal_segmentation_metrics
+               ).collect())
 
-        // upSuppl
+        // genPayloadQc
+        pGenQc(
+            normal_aln_meta, tumour_aln_meta,
+            prepQc.out.qc_metrics_tar.collect(),
+            name, short_name, version
+        )
 
-        // cleanup
+        // skip upload if in local_mode
+        if (!local_mode) {
+            // uploadVariant
+            upSnv(study_id, pGenVarSnv.out.payload, pGenVarSnv.out.files_to_upload)
+            upIndel(study_id, pGenVarIndel.out.payload, pGenVarIndel.out.files_to_upload)
+
+            // upQc
+            upQc(study_id, pGenQc.out.payload, pGenQc.out.files_to_upload)
+        }
+
+        // cleanup, skip cleanup when running in local mode
+        if (params.cleanup && !local_mode) {
+            cleanupM2(
+                dnldT.out.files.concat(
+                    dnldN.out, Mutect2.out, learnROM.out, mergeVcfs.out, mergeMS.out, calCont.out,
+                    filterMC.out, excIndel.out, selIndel.out
+                ).collect(),
+                upSnv.out.analysis_id.concat(upIndel.out.analysis_id, upQc.out.analysis_id).collect()
+            )
+
+            if (params.perform_bqsr) {
+                cleanupBqsr(
+                    bqsrT.out.bqsr_bam.concat(bqsrN.out).collect(),
+                    upSnv.out.analysis_id.concat(upIndel.out.analysis_id, upQc.out.analysis_id).collect()
+                )
+            }
+        }
 
 }
 
