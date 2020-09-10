@@ -290,10 +290,10 @@ workflow M2 {
         ) {
             local_mode = true
             tumour_aln_seq = file(tumour_aln_cram)
-            tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai']))
+            tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai'])).flatten().first()
             tumour_aln_meta = file(tumour_aln_metadata)
             normal_aln_seq = file(normal_aln_cram)
-            normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai']))
+            normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai'])).flatten().first()
             normal_aln_meta = file(normal_aln_metadata)
         } else {
             exit 1, "To download input aligned seq files from SONG/SCORE, please provide `params.tumour_aln_analysis_id` and `params.normal_aln_analysis_id`.\n" +
