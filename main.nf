@@ -357,8 +357,8 @@ workflow M2 {
             ref_fa_2nd.collect(),
             germline_resource_vcfs.collect(),
             germline_resource_indices.collect(),
-            panel_of_normals,
-            panel_of_normals_idx,
+            panel_of_normals.collect(),
+            panel_of_normals_idx.collect(),
             mutect2_scatter_interval_files_ch.flatten()
         )
 
