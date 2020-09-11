@@ -161,6 +161,10 @@ params.calculateContamination = [
 params.upload = [:]
 
 download_params = [
+    'song_cpus': params.cpus,
+    'song_mem': params.mem,
+    'score_cpus': params.cpus,
+    'score_mem': params.mem,
     'song_url': params.song_url,
     'score_url': params.score_url,
     'api_token': params.api_token,
@@ -228,7 +232,7 @@ include { calculateContamination as calCont } from './calculate-contamination/ca
 include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.1/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
 include { gatkSelectVariants as excIndel; gatkSelectVariants as selIndel } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-select-variants.4.1.8.0-1.0/tools/gatk-select-variants/gatk-select-variants'
 include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.3.1.0/tools/payload-gen-variant-calling/payload-gen-variant-calling"
-include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.0.0/tools/prep-mutect2-qc/prep-mutect2-qc'
+include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.1.0/tools/prep-mutect2-qc/prep-mutect2-qc'
 include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
 include { songScoreUpload as upSnv; songScoreUpload as upIndel; songScoreUpload as upQc} from './song-score-utils/song-score-upload' params(upload_params)
 include { cleanupWorkdir as cleanupM2; cleanupWorkdir as cleanupBqsr } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/2.1.0/process/cleanup-workdir'
