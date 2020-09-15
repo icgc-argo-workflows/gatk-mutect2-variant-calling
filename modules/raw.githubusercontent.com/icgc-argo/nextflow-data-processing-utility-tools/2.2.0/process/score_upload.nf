@@ -16,30 +16,26 @@ params.api_token = "" // song/score API token for download process
 // --song_url         song url for download process
 // --score_url        score url for download process
 
-// TODO: Replace with score container once it can download files via analysis_id
-process scoreDownload {
-    pod secret: workflow.runName + "-secret", mountPath: "/tmp/" + workflow.runName
+process scoreUpload {
+    pod = [secret: params.rdpc_secret_name, mountPath: "/tmp/rpdc_secret"]
     
     cpus params.cpus
     memory "${params.mem} GB"
  
     container "overture/score:${params.container_version}"
 
-    label "scoreDownload"
     tag "${analysis_id}"
 
     input:
-        path analysis
-        val study_id
         val analysis_id
+        path manifest
+        path upload
 
     output:
-        path analysis, emit: analysis_json
-        path 'out/*', emit: files
-
+        val analysis_id, emit: ready_to_publish
 
     script:
-        accessToken = params.api_token ? params.api_token : "`cat /tmp/${workflow.runName}/secret`"
+        accessToken = params.api_token ? params.api_token : "`cat /tmp/rpdc_secret/secret`"
         """
         export METADATA_URL=${params.song_url}
         export STORAGE_URL=${params.score_url}
@@ -47,6 +43,6 @@ process scoreDownload {
         export TRANSPORT_MEMORY=${params.transport_mem}
         export ACCESSTOKEN=${accessToken}
         
-        score-client download --analysis-id ${analysis_id} --study-id ${study_id} --output-dir ./out 
+        score-client upload --manifest ${manifest}
         """
 }

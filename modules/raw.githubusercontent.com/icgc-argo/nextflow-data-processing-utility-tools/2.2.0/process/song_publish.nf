@@ -15,8 +15,8 @@ params.api_token = "" // song/score API token for download process
 // --song_url         song url for download process
 // --score_url        score url for download process
 
-process songGetAnalysis {
-    pod secret: workflow.runName + "-secret", mountPath: "/tmp/" + workflow.runName
+process songPublish {
+    pod = [secret: params.rdpc_secret_name, mountPath: "/tmp/rpdc_secret"]
     
     cpus params.cpus
     memory "${params.mem} GB"
@@ -24,22 +24,21 @@ process songGetAnalysis {
     container "overture/song-client:${params.container_version}"
 
     tag "${analysis_id}"
-
+    
     input:
         val study_id
         val analysis_id
 
     output:
-        path "*.analysis.json", emit: json
-
+        val analysis_id, emit: analysis_id
 
     script:
-        accessToken = params.api_token ? params.api_token : "`cat /tmp/${workflow.runName}/secret`"
+        accessToken = params.api_token ? params.api_token : "`cat /tmp/rpdc_secret/secret`"
         """
         export CLIENT_SERVER_URL=${params.song_url}
         export CLIENT_STUDY_ID=${study_id}
         export CLIENT_ACCESS_TOKEN=${accessToken}
 
-        sing search -a ${analysis_id} > ${analysis_id}.analysis.json
+        sing publish -a  ${analysis_id}
         """
 }
