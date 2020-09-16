@@ -168,6 +168,7 @@ download_params = [
     'song_url': params.song_url,
     'score_url': params.score_url,
     'api_token': params.api_token,
+    'rdpc_secret_name': params.rdpc_secret_name,
     *:(params.download ?: [:])
 ]
 
@@ -216,6 +217,7 @@ upload_params = [
     'song_url': params.song_url,
     'score_url': params.score_url,
     'api_token': params.api_token,
+    'rdpc_secret_name': params.rdpc_secret_name,
     *:(params.upload ?: [:])
 ]
 
