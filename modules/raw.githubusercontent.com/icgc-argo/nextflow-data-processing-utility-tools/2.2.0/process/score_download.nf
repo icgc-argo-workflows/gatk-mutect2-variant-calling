@@ -18,7 +18,7 @@ params.api_token = "" // song/score API token for download process
 
 // TODO: Replace with score container once it can download files via analysis_id
 process scoreDownload {
-    pod = [secret: params.rdpc_secret_name, mountPath: "/tmp/rpdc_secret"]
+    pod = [secret: params.rdpc_secret_name, mountPath: "/tmp/rdpc_secret"]
     
     cpus params.cpus
     memory "${params.mem} GB"
@@ -39,7 +39,7 @@ process scoreDownload {
 
 
     script:
-        accessToken = params.api_token ? params.api_token : "`cat /tmp/${workflow.runName}/secret`"
+        accessToken = params.api_token ? params.api_token : "`cat /tmp/rdpc_secret/secret`"
         """
         export METADATA_URL=${params.song_url}
         export STORAGE_URL=${params.score_url}
