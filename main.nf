@@ -2,7 +2,7 @@
 nextflow.enable.dsl = 2
 name = 'gatk-mutect2-variant-calling'
 short_name = 'gatk-mutect2'
-version = '4.1.8.0-0.2-dev'
+version = '4.1.8.0-1.0-rc1'
 
 
 /*
@@ -119,6 +119,8 @@ params.bqsr_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.g
 // Allele frequency only, pass-only gnomAD vcf file
 params.germline_resource_vcfs = []  // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
 
+params.panel_of_normals = "NO_FILE"  // optional PoN VCF file, for now we use GATK's public PoN based on 1000 genome project
+
 params.contamination_variants = ""
 
 params.api_token = ""
@@ -159,6 +161,10 @@ params.calculateContamination = [
 params.upload = [:]
 
 download_params = [
+    'song_cpus': params.cpus,
+    'song_mem': params.mem,
+    'score_cpus': params.cpus,
+    'score_mem': params.mem,
     'song_url': params.song_url,
     'score_url': params.score_url,
     'api_token': params.api_token,
@@ -218,18 +224,18 @@ upload_params = [
 
 include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
-include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.1/tools/gatk-mutect2/gatk-mutect2' params(mutect2_params)
+include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.2/tools/gatk-mutect2/gatk-mutect2' params(mutect2_params)
 include { gatkLearnReadOrientationModel as learnROM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model' params(learnReadOrientationModel_params)
 include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs' params(mergeVcfs_params)
 include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats' params(mergeMutectStats_params)
 include { calculateContamination as calCont } from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
-include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.0/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
+include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.2/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
 include { gatkSelectVariants as excIndel; gatkSelectVariants as selIndel } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-select-variants.4.1.8.0-1.0/tools/gatk-select-variants/gatk-select-variants'
-include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.3.0.0/tools/payload-gen-variant-calling/payload-gen-variant-calling"
-include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.0.0/tools/prep-mutect2-qc/prep-mutect2-qc'
+include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.3.3.0/tools/payload-gen-variant-calling/payload-gen-variant-calling"
+include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.2.0/tools/prep-mutect2-qc/prep-mutect2-qc'
 include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
 include { songScoreUpload as upSnv; songScoreUpload as upIndel; songScoreUpload as upQc} from './song-score-utils/song-score-upload' params(upload_params)
-include { cleanupWorkdir as cleanupM2; cleanupWorkdir as cleanupBqsr } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/1.1.5/process/cleanup-workdir'
+include { cleanupWorkdir as cleanupM2; cleanupWorkdir as cleanupBqsr } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/2.3.0/process/cleanup-workdir'
 
 
 workflow M2 {
@@ -241,6 +247,8 @@ workflow M2 {
         ref_fa_img
         germline_resource_vcfs
         germline_resource_indices
+        panel_of_normals
+        panel_of_normals_idx
         contamination_variants
         contamination_variants_indices
         tumour_aln_analysis_id
@@ -286,10 +294,10 @@ workflow M2 {
         ) {
             local_mode = true
             tumour_aln_seq = file(tumour_aln_cram)
-            tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai']))
+            tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai'])).flatten().first()
             tumour_aln_meta = file(tumour_aln_metadata)
             normal_aln_seq = file(normal_aln_cram)
-            normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai']))
+            normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai'])).flatten().first()
             normal_aln_meta = file(normal_aln_metadata)
         } else {
             exit 1, "To download input aligned seq files from SONG/SCORE, please provide `params.tumour_aln_analysis_id` and `params.normal_aln_analysis_id`.\n" +
@@ -353,6 +361,8 @@ workflow M2 {
             ref_fa_2nd.collect(),
             germline_resource_vcfs.collect(),
             germline_resource_indices.collect(),
+            panel_of_normals.collect(),
+            panel_of_normals_idx.collect(),
             mutect2_scatter_interval_files_ch.flatten()
         )
 
@@ -370,7 +380,7 @@ workflow M2 {
         // mergeMS
         mergeMS(
             Mutect2.out.mutect_stats.collect(),
-            'merged.stats'
+            'merged-mutect-stats'
         )
 
         // calCont
@@ -434,7 +444,9 @@ workflow M2 {
         prepQc(calCont.out.tumour_contamination_metrics.concat(
                     calCont.out.tumour_segmentation_metrics,
                     calCont.out.normal_contamination_metrics,
-                    calCont.out.normal_segmentation_metrics
+                    calCont.out.normal_segmentation_metrics,
+                    filterMC.out.filtering_stats,
+                    mergeMS.out.merged_stats
                ).collect())
 
         // genPayloadQc
@@ -479,6 +491,9 @@ workflow {
     germline_resource_vcfs = Channel.fromPath(params.germline_resource_vcfs)
     germline_resource_indices = germline_resource_vcfs.flatMap { v -> getSec(v, ['tbi']) }
 
+    panel_of_normals = Channel.fromPath(params.panel_of_normals)
+    panel_of_normals_idx = panel_of_normals.flatMap { v -> getSec(v, ['tbi']) }
+
     contamination_variants = Channel.fromPath(params.contamination_variants)
     contamination_variants_indices = contamination_variants.flatMap { v -> getSec(v, ['tbi']) }
 
@@ -490,6 +505,8 @@ workflow {
         Channel.fromPath(getSec(params.ref_fa, ['img'])),
         germline_resource_vcfs,
         germline_resource_indices,
+        panel_of_normals,
+        panel_of_normals_idx,
         contamination_variants,
         contamination_variants_indices,
         params.tumour_aln_analysis_id,
