@@ -5,5 +5,6 @@
   "ref_fa": "/home/ubuntu/reference/GRCh38_hla_decoy_ebv.fa",
   "mutect2_scatter_interval_files": "assets/mutect2.scatter_by_chr/chr*.interval_list",
   "germline_resource_vcfs": ["/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.hg38.vcf.gz"],
-  "contamination_variants": "/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz"
+  "contamination_variants": "/home/ubuntu/gatk/resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz",
+  "panel_of_normals": "/home/ubuntu/gatk/resources/1000g_pon.hg38.vcf.gz"
 }
