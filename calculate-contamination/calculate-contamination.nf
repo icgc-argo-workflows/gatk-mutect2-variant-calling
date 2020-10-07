@@ -2,7 +2,7 @@
 nextflow.enable.dsl = 2
 name = 'gatk-calculate-contamination'
 short_name = 'contamination'
-version = '4.1.8.0-1.0-dev'
+version = '4.1.8.0-1.0'
 
 
 /*
