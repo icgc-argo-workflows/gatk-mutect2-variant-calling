@@ -2,7 +2,7 @@
 nextflow.enable.dsl = 2
 name = 'gatk-mutect2-variant-calling'
 short_name = 'gatk-mutect2'
-version = '4.1.8.0-1.2'
+version = '4.1.8.0-1.3-dev'
 
 
 /*
@@ -294,10 +294,10 @@ workflow M2 {
         ) {
             local_mode = true
             tumour_aln_seq = file(tumour_aln_cram)
-            tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai'])).flatten().first()
+            tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai']))
             tumour_aln_meta = file(tumour_aln_metadata)
             normal_aln_seq = file(normal_aln_cram)
-            normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai'])).flatten().first()
+            normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai']))
             normal_aln_meta = file(normal_aln_metadata)
         } else {
             exit 1, "To download input aligned seq files from SONG/SCORE, please provide `params.tumour_aln_analysis_id` and `params.normal_aln_analysis_id`.\n" +
@@ -322,7 +322,7 @@ workflow M2 {
             // BQSR Tumour
             bqsrT(
                 tumour_aln_seq,  // aln seq
-                tumour_aln_seq_idx,   // aln idx
+                tumour_aln_seq_idx.collect(),   // aln idx
                 ref_fa,
                 ref_fa_2nd,
                 germline_resource_vcfs,  // use gnomAD as known_sites
@@ -337,7 +337,7 @@ workflow M2 {
             // BQSR Normal
             bqsrN(
                 normal_aln_seq,  // aln seq
-                normal_aln_seq_idx,   // aln idx
+                normal_aln_seq_idx.collect(),   // aln idx
                 ref_fa,
                 ref_fa_2nd,
                 germline_resource_vcfs,  // use gnomAD as known_sites
@@ -354,9 +354,9 @@ workflow M2 {
         // Mutect2
         Mutect2(
             tumour_aln_seq,
-            tumour_aln_seq_idx,
+            tumour_aln_seq_idx.collect(),
             normal_aln_seq,
-            normal_aln_seq_idx,
+            normal_aln_seq_idx.collect(),
             ref_fa,
             ref_fa_2nd.collect(),
             germline_resource_vcfs.collect(),
@@ -386,9 +386,9 @@ workflow M2 {
         // calCont
         calCont(
             tumour_aln_seq,
-            tumour_aln_seq_idx,
+            tumour_aln_seq_idx.collect(),
             normal_aln_seq,
-            normal_aln_seq_idx,
+            normal_aln_seq_idx.collect(),
             ref_fa,
             ref_fa_2nd,
             ref_fa_dict,
