@@ -2,12 +2,12 @@
 nextflow.enable.dsl = 2
 name = 'gatk-mutect2-variant-calling'
 short_name = 'gatk-mutect2'
-version = '4.1.8.0-1.3-dev'
+version = '4.1.8.0-2.0'
 
 
 /*
 ========================================================================================
-                    ICGC-ARGO GATK Mutect2 Variant Calling Workflow
+                    ICGC ARGO GATK Mutect2 Variant Calling Workflow
 ========================================================================================
 #### Homepage / Documentation
 https://github.com/icgc-argo/gatk-mutect2-variant-calling
@@ -21,8 +21,10 @@ Required Parameters (no default):
 --tumour_aln_analysis_id                Tumour WGS sequencing_alignment SONG analysis ID
 --normal_aln_analysis_id                Normal WGS sequencing_alignment SONG analysis ID
 --tumour_aln_metadata                   Tumour WGS alignment metadata JSON file
+--tumour_extra_info                     Tumour sample extra info TSV including submitter ID to uniform ID mapping
 --tumour_aln_cram                       Tumour WGS aligned CRAM file (index file .crai is also required)
 --normal_aln_metadata                   Normal WGS alignment metadata JSON file
+--normal_extra_info                     Normal sample extra info TSV including submitter ID to uniform ID mapping
 --normal_aln_cram                       Normal WGS aligned CRAM file (index file .crai is also required)
 --ref_fa                                Reference genome '.fa' file, secondary files ('.fa.fai', '.dict') are expected to be under the same folder
 --song_url                              SONG server URL
@@ -102,11 +104,16 @@ params.study_id = ""
 params.tumour_aln_analysis_id = ""
 params.normal_aln_analysis_id = ""
 
-// if provided local files will be used
-params.tumour_aln_metadata = "NO_FILE"
-params.tumour_aln_cram = "NO_FILE"
-params.normal_aln_metadata = "NO_FILE"
-params.normal_aln_cram = "NO_FILE"
+// the following params if provided local files will be used
+params.tumour_aln_metadata = "NO_FILE1"
+params.tumour_aln_cram = "NO_FILE2"
+params.tumour_extra_info = "NO_FILE3"
+params.normal_aln_metadata = "NO_FILE4"
+params.normal_aln_cram = "NO_FILE5"
+params.normal_extra_info = "NO_FILE6"
+
+// dir for outputs, must be set when running in local mode
+params.publish_dir = ""
 
 params.perform_bqsr = true  // default to true
 
@@ -224,18 +231,20 @@ upload_params = [
 
 include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
-include { gatkMutect2 as Mutect2; getSecondaryFiles as getSec } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.2/tools/gatk-mutect2/gatk-mutect2' params(mutect2_params)
+include { gatkMutect2 as Mutect2 } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.2/tools/gatk-mutect2/gatk-mutect2' params(mutect2_params)
+include { getSecondaryFiles as getSec } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/helper-functions@1.0.0/main'
 include { gatkLearnReadOrientationModel as learnROM } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-learn-read-orientation-model.4.1.8.0-2.0/tools/gatk-learn-read-orientation-model/gatk-learn-read-orientation-model' params(learnReadOrientationModel_params)
 include { gatkMergeVcfs as mergeVcfs } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-vcfs.4.1.8.0-2.0/tools/gatk-merge-vcfs/gatk-merge-vcfs' params(mergeVcfs_params)
 include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-merge-mutect-stats.4.1.8.0-2.0/tools/gatk-merge-mutect-stats/gatk-merge-mutect-stats' params(mergeMutectStats_params)
 include { calculateContamination as calCont } from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.2/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
 include { gatkSelectVariants as excIndel; gatkSelectVariants as selIndel } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-select-variants.4.1.8.0-1.0/tools/gatk-select-variants/gatk-select-variants'
-include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.3.5.0/tools/payload-gen-variant-calling/payload-gen-variant-calling"
+include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.3.6.0/tools/payload-gen-variant-calling/payload-gen-variant-calling"
 include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.2.0/tools/prep-mutect2-qc/prep-mutect2-qc'
 include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
 include { songScoreUpload as upSnv; songScoreUpload as upIndel; songScoreUpload as upQc} from './song-score-utils/song-score-upload' params(upload_params)
-include { cleanupWorkdir as cleanupM2; cleanupWorkdir as cleanupBqsr } from './modules/raw.githubusercontent.com/icgc-argo/nextflow-data-processing-utility-tools/2.3.0/process/cleanup-workdir'
+include { cleanupWorkdir as cleanupM2; cleanupWorkdir as cleanupBqsr } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/cleanup-workdir@1.0.0/main'
+include { payloadAddUniformIds as pAddIdT; payloadAddUniformIds as pAddIdN } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/payload-add-uniform-ids@0.1.1/main'
 
 
 workflow M2 {
@@ -254,8 +263,10 @@ workflow M2 {
         tumour_aln_analysis_id
         normal_aln_analysis_id
         tumour_aln_metadata
+        tumour_extra_info
         tumour_aln_cram
         normal_aln_metadata
+        normal_extra_info
         normal_aln_cram
         mutect2_scatter_interval_files
         perform_bqsr
@@ -287,21 +298,33 @@ workflow M2 {
             normal_aln_seq_idx = dnldN.out.files.flatten().last()
             normal_aln_meta = dnldN.out.song_analysis
         } else if (
-            tumour_aln_metadata != 'NO_FILE' && \
-            tumour_aln_cram != 'NO_FILE' && \
-            normal_aln_metadata != 'NO_FILE' && \
-            normal_aln_cram != 'NO_FILE'
+            !tumour_aln_metadata.startsWith('NO_FILE') && \
+            !tumour_extra_info.startsWith('NO_FILE') && \
+            !tumour_aln_cram.startsWith('NO_FILE') && \
+            !normal_aln_metadata.startsWith('NO_FILE') && \
+            !normal_extra_info.startsWith('NO_FILE') && \
+            !normal_aln_cram.startsWith('NO_FILE')
         ) {
+            if (!params.publish_dir) {
+                exit 1, "When use local inputs, params.publish_dir must be specified."
+            } else {
+                log.info "Use local inputs, outputs will be in: ${params.publish_dir}"
+            }
+
             local_mode = true
+
             tumour_aln_seq = file(tumour_aln_cram)
             tumour_aln_seq_idx = Channel.fromPath(getSec(tumour_aln_cram, ['crai', 'bai']))
-            tumour_aln_meta = file(tumour_aln_metadata)
+            pAddIdT(file(tumour_aln_metadata), file(tumour_extra_info))
+            tumour_aln_meta = pAddIdT.out.payload
+
             normal_aln_seq = file(normal_aln_cram)
             normal_aln_seq_idx = Channel.fromPath(getSec(normal_aln_cram, ['crai', 'bai']))
-            normal_aln_meta = file(normal_aln_metadata)
+            pAddIdN(file(normal_aln_metadata), file(normal_extra_info))
+            normal_aln_meta = pAddIdN.out.payload
         } else {
             exit 1, "To download input aligned seq files from SONG/SCORE, please provide `params.tumour_aln_analysis_id` and `params.normal_aln_analysis_id`.\n" +
-                "Or please provide `params.tumour_aln_metadata`, `params.tumour_aln_cram`, `params.normal_aln_metadata` and `params.normal_aln_cram` to use local files as input."
+                "Or please provide `params.tumour_aln_metadata`, `params.tumour_extra_info`, `params.tumour_aln_cram`, `params.normal_aln_metadata`, `params.normal_extra_info` and `params.normal_aln_cram` to use local files as input."
         }
 
 
@@ -467,14 +490,24 @@ workflow M2 {
         }
 
         // cleanup, skip cleanup when running in local mode
-        if (params.cleanup && !local_mode) {
-            cleanupM2(
-                dnldT.out.files.concat(
-                    dnldN.out, Mutect2.out, learnROM.out, mergeVcfs.out, mergeMS.out, calCont.out,
-                    filterMC.out, excIndel.out, selIndel.out
-                ).collect(),
-                upSnv.out.analysis_id.concat(upIndel.out.analysis_id, upQc.out.analysis_id).collect()
-            )
+        if (params.cleanup) {
+            if (local_mode) {
+                cleanupM2(
+                    Mutect2.out.output_vcf.concat(
+                        learnROM.out, mergeVcfs.out, mergeMS.out, calCont.out,
+                        filterMC.out, excIndel.out, selIndel.out
+                    ).collect(),
+                    true
+                )
+            } else {
+                cleanupM2(
+                    dnldT.out.files.concat(
+                        dnldN.out, Mutect2.out, learnROM.out, mergeVcfs.out, mergeMS.out, calCont.out,
+                        filterMC.out, excIndel.out, selIndel.out
+                    ).collect(),
+                    upSnv.out.analysis_id.concat(upIndel.out.analysis_id, upQc.out.analysis_id).collect()
+                )
+            }
 
             if (params.perform_bqsr) {
                 cleanupBqsr(
@@ -489,13 +522,13 @@ workflow M2 {
 
 workflow {
     germline_resource_vcfs = Channel.fromPath(params.germline_resource_vcfs)
-    germline_resource_indices = germline_resource_vcfs.flatMap { v -> getSec(v, ['tbi']) }
+    germline_resource_indices = germline_resource_vcfs.flatMap { v -> getSec(v.name, ['tbi']) }
 
     panel_of_normals = Channel.fromPath(params.panel_of_normals)
-    panel_of_normals_idx = panel_of_normals.flatMap { v -> getSec(v, ['tbi']) }
+    panel_of_normals_idx = panel_of_normals.flatMap { v -> getSec(v.name, ['tbi']) }
 
     contamination_variants = Channel.fromPath(params.contamination_variants)
-    contamination_variants_indices = contamination_variants.flatMap { v -> getSec(v, ['tbi']) }
+    contamination_variants_indices = contamination_variants.flatMap { v -> getSec(v.name, ['tbi']) }
 
     M2(
         params.study_id,
@@ -512,8 +545,10 @@ workflow {
         params.tumour_aln_analysis_id,
         params.normal_aln_analysis_id,
         params.tumour_aln_metadata,
+        params.tumour_extra_info,
         params.tumour_aln_cram,
         params.normal_aln_metadata,
+        params.normal_extra_info,
         params.normal_aln_cram,
         params.mutect2_scatter_interval_files,
         params.perform_bqsr,
