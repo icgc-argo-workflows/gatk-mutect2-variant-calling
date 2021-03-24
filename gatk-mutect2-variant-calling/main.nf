@@ -495,7 +495,8 @@ workflow M2 {
                 cleanupM2(
                     Mutect2.out.output_vcf.concat(
                         learnROM.out, mergeVcfs.out, mergeMS.out, calCont.out,
-                        filterMC.out, excIndel.out, selIndel.out
+                        filterMC.out, excIndel.out, selIndel.out, pGenVarSnv.out,
+                        pGenVarIndel.out, prepQc.out, pGenQc.out
                     ).collect(),
                     true
                 )
@@ -503,7 +504,8 @@ workflow M2 {
                 cleanupM2(
                     dnldT.out.files.concat(
                         dnldN.out, Mutect2.out, learnROM.out, mergeVcfs.out, mergeMS.out, calCont.out,
-                        filterMC.out, excIndel.out, selIndel.out
+                        filterMC.out, excIndel.out, selIndel.out, pGenVarSnv.out,
+                        pGenVarIndel.out, prepQc.out, pGenQc.out
                     ).collect(),
                     upSnv.out.analysis_id.concat(upIndel.out.analysis_id, upQc.out.analysis_id).collect()
                 )
@@ -512,7 +514,7 @@ workflow M2 {
             if (params.perform_bqsr) {
                 cleanupBqsr(
                     bqsrT.out.bqsr_bam.concat(bqsrN.out).collect(),
-                    upSnv.out.analysis_id.concat(upIndel.out.analysis_id, upQc.out.analysis_id).collect()
+                    pGenVarSnv.out.payload.concat(pGenVarIndel.out, pGenQc.out).collect()
                 )
             }
         }
@@ -522,13 +524,13 @@ workflow M2 {
 
 workflow {
     germline_resource_vcfs = Channel.fromPath(params.germline_resource_vcfs)
-    germline_resource_indices = germline_resource_vcfs.flatMap { v -> getSec(v.name, ['tbi']) }
+    germline_resource_indices = germline_resource_vcfs.flatMap { v -> getSec(v, ['tbi']) }
 
     panel_of_normals = Channel.fromPath(params.panel_of_normals)
-    panel_of_normals_idx = panel_of_normals.flatMap { v -> getSec(v.name, ['tbi']) }
+    panel_of_normals_idx = panel_of_normals.flatMap { v -> getSec(v, ['tbi']) }
 
     contamination_variants = Channel.fromPath(params.contamination_variants)
-    contamination_variants_indices = contamination_variants.flatMap { v -> getSec(v.name, ['tbi']) }
+    contamination_variants_indices = contamination_variants.flatMap { v -> getSec(v, ['tbi']) }
 
     M2(
         params.study_id,
