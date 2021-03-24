@@ -35,56 +35,85 @@ params.container_registry = ""
 params.container_version = ""
 
 // tool specific parmas go here, add / change as needed
-params.input_file = ""
-params.expected_output = ""
-params.cleanup = false
+params.study_id = ""
 
-include { GatkMutect2VariantCalling } from '../main'
-// include section starts
-// include section ends
+// aligned seq will be downloaded from SONG/SCORE
+params.tumour_aln_analysis_id = ""
+params.normal_aln_analysis_id = ""
 
+// the following params if provided local files will be used
+params.tumour_aln_metadata = "NO_FILE1"
+params.tumour_aln_cram = "NO_FILE2"
+params.tumour_extra_info = "NO_FILE3"
+params.normal_aln_metadata = "NO_FILE4"
+params.normal_aln_cram = "NO_FILE5"
+params.normal_extra_info = "NO_FILE6"
 
-process file_smart_diff {
-  input:
-    path output_file
-    path expected_file
+// dir for outputs, must be set when running in local mode
+params.publish_dir = ""
 
-  output:
-    stdout()
+params.perform_bqsr = true  // default to true
 
-  script:
-    """
-    # Note: this is only for demo purpose, please write your own 'diff' according to your own needs.
-    # remove date field before comparison eg, <div id="header_filename">Tue 19 Jan 2021<br/>test_rg_3.bam</div>
-    # sed -e 's#"header_filename">.*<br/>test_rg_3.bam#"header_filename"><br/>test_rg_3.bam</div>#'
+params.ref_fa = "reference/tiny-grch38-chr11-530001-537000.fa"
 
-    diff <( cat ${output_file} | sed -e 's#"header_filename">.*<br/>#"header_filename"><br/>#' ) \
-         <( ([[ '${expected_file}' == *.gz ]] && gunzip -c ${expected_file} || cat ${expected_file}) | sed -e 's#"header_filename">.*<br/>#"header_filename"><br/>#' ) \
-    && ( echo "Test PASSED" && exit 0 ) || ( echo "Test FAILED, output file mismatch." && exit 1 )
-    """
-}
+params.mutect2_scatter_interval_files = "assets/mutect2.scatter_by_chr/chr*.interval_list"
+params.bqsr_recal_grouping_file = "assets/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv"
+params.bqsr_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv"
 
+// Allele frequency only, pass-only gnomAD vcf file
+params.germline_resource_vcfs = []  // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
 
-workflow checker {
-  take:
-    input_file
-    expected_output
+params.panel_of_normals = "NO_FILE"  // optional PoN VCF file, for now we use GATK's public PoN based on 1000 genome project
 
-  main:
-    GatkMutect2VariantCalling(
-      input_file
-    )
+params.contamination_variants = ""
 
-    file_smart_diff(
-      GatkMutect2VariantCalling.out.output_file,
-      expected_output
-    )
-}
+params.api_token = ""
+params.song_url = ""
+params.score_url = ""
+params.cleanup = true
+
+params.cpus = 2
+params.mem = 4
+
+params.ref_dict = ""
+
+include { M2 } from '../main'
+include { getSecondaryFiles as getSec } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/helper-functions@1.0.1/main'
 
 
 workflow {
-  checker(
-    file(params.input_file),
-    file(params.expected_output)
-  )
+    germline_resource_vcfs = Channel.fromPath(params.germline_resource_vcfs)
+    germline_resource_indices = germline_resource_vcfs.flatMap { v -> getSec(v, ['tbi']) }
+
+    panel_of_normals = Channel.fromPath(params.panel_of_normals)
+    panel_of_normals_idx = panel_of_normals.flatMap { v -> getSec(v, ['tbi']) }
+
+    contamination_variants = Channel.fromPath(params.contamination_variants)
+    contamination_variants_indices = contamination_variants.flatMap { v -> getSec(v, ['tbi']) }
+
+    M2(
+        params.study_id,
+        file(params.ref_fa),
+        Channel.fromPath(getSec(params.ref_fa, ['^dict', 'fai']), checkIfExists: true).collect(),
+        Channel.fromPath(getSec(params.ref_fa, ['^dict']), checkIfExists: true).collect(),
+        Channel.fromPath(getSec(params.ref_fa, ['img'])),
+        germline_resource_vcfs,
+        germline_resource_indices,
+        panel_of_normals,
+        panel_of_normals_idx,
+        contamination_variants,
+        contamination_variants_indices,
+        params.tumour_aln_analysis_id,
+        params.normal_aln_analysis_id,
+        params.tumour_aln_metadata,
+        params.tumour_extra_info,
+        params.tumour_aln_cram,
+        params.normal_aln_metadata,
+        params.normal_extra_info,
+        params.normal_aln_cram,
+        params.mutect2_scatter_interval_files,
+        params.perform_bqsr,
+        params.bqsr_recal_grouping_file,
+        params.bqsr_apply_grouping_file
+    )
 }
