@@ -1,28 +1,26 @@
 {
-	"study_id": "TEST-PR",
+  "study_id": "TEST-PR",
 
-	"tumour_aln_metadata": "input/03905962-f1e1-41e8-9059-62f1e1c1e8fc.dna-seq-alignment.json",
-	"tumour_aln_cram": "input/TEST-PR.DO250183.SA610229.wgs.20200404.aln.cram",
-	"tumour_extra_info": "input/T.extra_info.tsv",
-	"normal_aln_metadata": "input/9940db0f-c100-496a-80db-0fc100d96ac1.dna-seq-alignment.json",
-	"normal_aln_cram": "input/TEST-PR.DO250183.SA610228.wgs.20200404.aln.cram",
-	"normal_extra_info": "input/N.extra_info.tsv",
+  "tumour_aln_metadata": "input/03905962-f1e1-41e8-9059-62f1e1c1e8fc.dna-seq-alignment.json",
+  "tumour_aln_cram": "input/TEST-PR.DO250183.SA610229.wgs.20200404.aln.cram",
+  "tumour_extra_info": "input/T.extra_info.tsv",
+  "normal_aln_metadata": "input/9940db0f-c100-496a-80db-0fc100d96ac1.dna-seq-alignment.json",
+  "normal_aln_cram": "input/TEST-PR.DO250183.SA610228.wgs.20200404.aln.cram",
+  "normal_extra_info": "input/N.extra_info.tsv",
 
-	"publish_dir": "outdir",
+  "publish_dir": "outdir",
 
-	"perform_bqsr": false,
+  "perform_bqsr": false,
 
-	"ref_fa": "/home/ubuntu/references/grch38/GRCh38_hla_decoy_ebv.fa",
-	"ref_dict": "",
-	"mutect2_scatter_interval_files": "/home/ubuntu/gatk-resources/mutect2.scatter_by_chr/chr*.interval_list",
-	"bqsr_recal_grouping_file": "/home/ubuntu/gatk-resources/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv",
-	"bqsr_apply_grouping_file": "/home/ubuntu/gatk-resources/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv",
-	"germline_resource_vcfs": [
-		"/home/ubuntu/gatk-resources/af-only-gnomad.pass-only.hg38.vcf.gz"
-	],
-	"panel_of_normals": "/home/ubuntu/gatk-resources/1000g_pon.hg38.vcf.gz",
-	"contamination_variants": "/home/ubuntu/gatk-resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz",
+  "ref_fa": "/home/ubuntu/references/grch38/GRCh38_hla_decoy_ebv.fa",
+  "ref_dict": "",
+  "mutect2_scatter_interval_files": "/home/ubuntu/gatk-resources/mutect2.scatter_by_chr/chr*.interval_list",
+  "germline_resource_vcfs": [
+    "/home/ubuntu/gatk-resources/af-only-gnomad.pass-only.hg38.vcf.gz"
+  ],
+  "panel_of_normals": "/home/ubuntu/gatk-resources/1000g_pon.hg38.vcf.gz",
+  "contamination_variants": "/home/ubuntu/gatk-resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz",
 
-	"mem": 60,
-	"cpus": 10
+  "mem": 60,
+  "cpus": 10
 }

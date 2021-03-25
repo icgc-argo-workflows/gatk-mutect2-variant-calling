@@ -141,7 +141,6 @@ params.mem = 4
 params.download = [:]
 params.bqsr = [:]
 params.mutect2 = [:]
-params.ref_dict = ""
 params.gatherPileupSummaries = [:]
 params.learnReadOrientationModel = [:]
 params.mergeVcfs = [:]
@@ -157,7 +156,6 @@ params.mutect2_params = [
 params.gatherPileupSummaries_params = [
     'cpus': params.cpus,
     'mem': params.mem,
-    'ref_dict': params.ref_dict,
     *:(params.gatherPileupSummaries ?: [:])
 ]
 
@@ -188,7 +186,6 @@ mutect2_params = [
 calculateContamination_params = [
     'cpus': params.cpus,
     'mem': params.mem,
-    'ref_dict': params.ref_dict,
     'ref_fa': params.ref_fa,
     *:(params.calculateContamination ?: [:])
 ]
