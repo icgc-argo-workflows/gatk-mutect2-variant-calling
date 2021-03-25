@@ -75,8 +75,6 @@ params.cleanup = true
 params.cpus = 2
 params.mem = 4
 
-params.ref_dict = ""
-
 include { M2 } from '../main'
 include { getSecondaryFiles as getSec } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/helper-functions@1.0.1/main'
 
