@@ -11,7 +11,6 @@
   "perform_bqsr": true,
 
   "ref_fa": "/nfs-dev-1-vol-qa-1/reference/GRCh38_hla_decoy_ebv/GRCh38_hla_decoy_ebv.fa",
-  "ref_dict": "",
   "mutect2_scatter_interval_files": "/nfs-dev-1-vol-qa-1/reference/gatk-resources/mutect2.scatter_by_chr/chr*.interval_list",
   "bqsr_recal_grouping_file": "/nfs-dev-1-vol-qa-1/reference/gatk-resources/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv",
   "bqsr_apply_grouping_file": "/nfs-dev-1-vol-qa-1/reference/gatk-resources/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv",

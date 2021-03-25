@@ -13,7 +13,6 @@
   "perform_bqsr": false,
 
   "ref_fa": "/home/ubuntu/references/grch38/GRCh38_hla_decoy_ebv.fa",
-  "ref_dict": "",
   "mutect2_scatter_interval_files": "/home/ubuntu/gatk-resources/mutect2.scatter_by_chr/chr*.interval_list",
   "germline_resource_vcfs": [
     "/home/ubuntu/gatk-resources/af-only-gnomad.pass-only.hg38.vcf.gz"
