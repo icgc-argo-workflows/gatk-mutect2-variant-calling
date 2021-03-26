@@ -11,6 +11,8 @@ def pytest_generate_tests(metafunc):
     if 'job' in metafunc.fixturenames:
         jobs = []
         for test_dir in glob(os.path.join('*', 'tests')):
+            if test_dir.endswith('gatk-mutect2-variant-calling/tests'):
+                continue
             for test_job in glob(os.path.join(test_dir, '*.json')):
                 if is_travis and os.path.basename(test_job).startswith('local-'): continue
 

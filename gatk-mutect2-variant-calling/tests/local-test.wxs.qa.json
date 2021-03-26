@@ -1,0 +1,25 @@
+{
+  "study_id": "TEST-PR",
+  "tumour_aln_analysis_id": "03905962-f1e1-41e8-9059-62f1e1c1e8fc",
+  "normal_aln_analysis_id": "9940db0f-c100-496a-80db-0fc100d96ac1",
+
+  "song_url": "https://song.rdpc-qa.cancercollaboratory.org",
+  "score_url": "https://score.rdpc-qa.cancercollaboratory.org",
+
+  "publish_dir": "",
+
+  "perform_bqsr": true,
+
+  "ref_fa": "/nfs-dev-1-vol-qa-1/reference/GRCh38_hla_decoy_ebv/GRCh38_hla_decoy_ebv.fa",
+  "mutect2_scatter_interval_files": "/nfs-dev-1-vol-qa-1/reference/gatk-resources/mutect2.scatter_by_chr/chr*.interval_list",
+  "bqsr_recal_grouping_file": "/nfs-dev-1-vol-qa-1/reference/gatk-resources/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv",
+  "bqsr_apply_grouping_file": "/nfs-dev-1-vol-qa-1/reference/gatk-resources/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv",
+  "germline_resource_vcfs": [
+    "/nfs-dev-1-vol-qa-1/reference/gatk-resources/af-only-gnomad.pass-only.hg38.vcf.gz"
+  ],
+  "panel_of_normals": "/nfs-dev-1-vol-qa-1/reference/gatk-resources/1000g_pon.hg38.vcf.gz",
+  "contamination_variants": "/nfs-dev-1-vol-qa-1/reference/gatk-resources/af-only-gnomad.pass-only.biallelic.snp.hg38.vcf.gz",
+
+  "mem": 40,
+  "cpus": 8
+}
