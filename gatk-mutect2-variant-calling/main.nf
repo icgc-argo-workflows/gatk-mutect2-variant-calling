@@ -147,11 +147,6 @@ params.mergeVcfs = [:]
 params.mergeMutectStats = [:]
 params.filterMutectCalls = [:]
 
-params.mutect2_params = [
-    'cpus': params.cpus,
-    'mem': params.mem,
-    *:(params.mutect2 ?: [:])
-]
 
 params.gatherPileupSummaries_params = [
     'cpus': params.cpus,
@@ -226,7 +221,7 @@ upload_params = [
 
 // Include all modules and pass params
 
-include { songScoreDownload as dnldT; songScoreDownload as dnldN } from './song-score-utils/song-score-download' params(download_params)
+include { SongScoreDownload as dnldT; SongScoreDownload as dnldN } from './wfpr_modules/github.com/icgc-argo/nextflow-data-processing-utility-tools/song-score-download@2.6.1/main.nf' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
 include { gatkMutect2 as Mutect2 } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.2/tools/gatk-mutect2/gatk-mutect2' params(mutect2_params)
 include { getSecondaryFiles as getSec } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/helper-functions@1.0.1/main'
@@ -238,8 +233,7 @@ include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercont
 include { gatkSelectVariants as excIndel; gatkSelectVariants as selIndel } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-select-variants.4.1.8.0-1.0/tools/gatk-select-variants/gatk-select-variants'
 include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling.0.3.6.0/tools/payload-gen-variant-calling/payload-gen-variant-calling"
 include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.2.0/tools/prep-mutect2-qc/prep-mutect2-qc'
-include { songScoreUpload } from './song-score-utils/song-score-upload' params(upload_params)
-include { songScoreUpload as upSnv; songScoreUpload as upIndel; songScoreUpload as upQc} from './song-score-utils/song-score-upload' params(upload_params)
+include { SongScoreUpload as upSnv; SongScoreUpload as upIndel; SongScoreUpload as upQc } from './wfpr_modules/github.com/icgc-argo/nextflow-data-processing-utility-tools/song-score-upload@2.6.1/main.nf' params(upload_params)
 include { cleanupWorkdir as cleanupM2; cleanupWorkdir as cleanupBqsr } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/cleanup-workdir@1.0.0/main'
 include { payloadAddUniformIds as pAddIdT; payloadAddUniformIds as pAddIdN } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/payload-add-uniform-ids@0.1.1/main'
 
