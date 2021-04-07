@@ -281,13 +281,13 @@ workflow M2 {
             dnldT(study_id, tumour_aln_analysis_id)
             tumour_aln_seq = dnldT.out.files.flatten().first()
             tumour_aln_seq_idx = dnldT.out.files.flatten().last()
-            tumour_aln_meta = dnldT.out.song_analysis
+            tumour_aln_meta = dnldT.out.analysis_json
 
             // download normal aligned seq and metadata from song/score (analysis type: sequencing_alignment)
             dnldN(study_id, normal_aln_analysis_id)
             normal_aln_seq = dnldN.out.files.flatten().first()
             normal_aln_seq_idx = dnldN.out.files.flatten().last()
-            normal_aln_meta = dnldN.out.song_analysis
+            normal_aln_meta = dnldN.out.analysis_json
         } else if (
             !tumour_aln_metadata.startsWith('NO_FILE') && \
             !tumour_extra_info.startsWith('NO_FILE') && \
