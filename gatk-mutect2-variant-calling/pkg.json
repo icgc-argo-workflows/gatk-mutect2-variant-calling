@@ -1,6 +1,6 @@
 {
     "name": "gatk-mutect2-variant-calling",
-    "version": "4.1.8.0-2.0",
+    "version": "4.1.8.0-3.0",
     "description": "ICGC ARGO GATK Mutect2 Variant Calling Workflow",
     "main": "main.nf",
     "deprecated": false,
@@ -17,7 +17,9 @@
     "dependencies": [
         "github.com/icgc-argo/data-processing-utility-tools/payload-add-uniform-ids@0.1.1",
         "github.com/icgc-argo/data-processing-utility-tools/helper-functions@1.0.1",
-        "github.com/icgc-argo/data-processing-utility-tools/cleanup-workdir@1.0.0"
+        "github.com/icgc-argo/data-processing-utility-tools/cleanup-workdir@1.0.0",
+        "github.com/icgc-argo/nextflow-data-processing-utility-tools/song-score-download@2.6.1",
+        "github.com/icgc-argo/nextflow-data-processing-utility-tools/song-score-upload@2.6.1"
     ],
     "devDependencies": [],
     "contributors": [
