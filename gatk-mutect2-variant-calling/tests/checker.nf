@@ -49,9 +49,6 @@ params.normal_aln_metadata = "NO_FILE4"
 params.normal_aln_cram = "NO_FILE5"
 params.normal_extra_info = "NO_FILE6"
 
-// dir for outputs, must be set when running in local mode
-params.publish_dir = ""
-
 params.perform_bqsr = true  // default to true
 
 params.ref_fa = "reference/tiny-grch38-chr11-530001-537000.fa"
