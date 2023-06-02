@@ -1,6 +1,6 @@
 {
     "name": "gatk-mutect2-variant-calling",
-    "version": "4.1.8.0-6.0",
+    "version": "4.1.8.0-7.0",
     "description": "ICGC ARGO GATK Mutect2 Variant Calling Workflow",
     "main": "main.nf",
     "deprecated": false,
