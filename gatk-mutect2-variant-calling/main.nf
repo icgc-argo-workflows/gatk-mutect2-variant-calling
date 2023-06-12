@@ -114,31 +114,38 @@ params.normal_extra_info = "NO_FILE6"
 
 // dir for outputs, must be set when running in local mode
 params.publish_dir = ""
+params.cleanup = true
+params.cpus = 2
+params.mem = 4
+params.max_retries = 5  // set to 0 will disable retry
+params.first_retry_wait_time = 1  // in seconds
 
 params.perform_bqsr = true  // default to true
 
 params.ref_fa = "tests/reference/tiny-grch38-chr11-530001-537000.fa"
-
 params.mutect2_scatter_interval_files = "assets/mutect2.scatter_by_chr/chr*.interval_list"
 params.bqsr_recal_grouping_file = "assets/bqsr.sequence_grouping.grch38_hla_decoy_ebv.csv"
 params.bqsr_apply_grouping_file = "assets/bqsr.sequence_grouping_with_unmapped.grch38_hla_decoy_ebv.csv"
 
 // Allele frequency only, pass-only gnomAD vcf file
 params.germline_resource_vcfs = []  // "tests/data/HCC1143-mini-Mutect2-calls/HCC1143.mutect2.copy.vcf.gz"
-
 params.panel_of_normals = "NO_FILE"  // optional PoN VCF file, for now we use GATK's public PoN based on 1000 genome project
-
 params.contamination_variants = ""
 
-params.api_token = ""
+// song/score setting
 params.song_url = ""
+params.song_container = "ghcr.io/overture-stack/song-client"
+params.song_container_version = "5.0.2"
 params.score_url = ""
-params.cleanup = true
-
-params.cpus = 2
-params.mem = 4
+params.score_container = "ghcr.io/overture-stack/score"
+params.score_container_version = "5.9.0"
+params.score_mem = 20
+params.score_cpus = 8
+params.score_force = false
+params.api_token = ""
 
 params.download = [:]
+params.upload = [:]
 params.bqsr = [:]
 params.mutect2 = [:]
 params.gatherPileupSummaries = [:]
@@ -148,6 +155,23 @@ params.mergeMutectStats = [:]
 params.filterMutectCalls = [:]
 params.payloadGenVariantCall = [:]
 
+download_params = [
+    'max_retries': params.max_retries,
+    'first_retry_wait_time': params.first_retry_wait_time,
+    'song_url': params.song_url,
+    'song_container': params.song_container,
+    'song_container_version': params.song_container_version,
+    'song_cpus': params.cpus,
+    'song_mem': params.mem,
+    'score_url': params.score_url,
+    'score_container': params.score_container,
+    'score_container_version': params.score_container_version,
+    'score_cpus' : params.score_cpus,
+    'score_mem' : params.score_mem,
+    'score_transport_mem' : params.score_mem, 
+    'api_token': params.api_token,
+    *:(params.download ?: [:])
+]
 
 params.gatherPileupSummaries_params = [
     'cpus': params.cpus,
@@ -157,19 +181,6 @@ params.gatherPileupSummaries_params = [
 
 params.calculateContamination = [
     'variants_for_contamination': 'NO_FILE'
-]
-
-params.upload = [:]
-
-download_params = [
-    'song_cpus': params.cpus,
-    'song_mem': params.mem,
-    'score_cpus': params.cpus,
-    'score_mem': params.mem,
-    'song_url': params.song_url,
-    'score_url': params.score_url,
-    'api_token': params.api_token,
-    *:(params.download ?: [:])
 ]
 
 mutect2_params = [
@@ -218,10 +229,20 @@ payloadGenVariantCall_params = [
 ]
 
 upload_params = [
-    'cpus': params.cpus,
-    'mem': params.mem,
+    'max_retries': params.max_retries,
+    'first_retry_wait_time': params.first_retry_wait_time,
     'song_url': params.song_url,
+    'song_container': params.song_container,
+    'song_container_version': params.song_container_version,
+    'song_cpus': params.cpus,
+    'song_mem': params.mem,
     'score_url': params.score_url,
+    'score_container': params.score_container,
+    'score_container_version': params.score_container_version,
+    'score_force' : params.score_force,
+    'score_cpus' : params.score_cpus,
+    'score_mem' : params.score_mem,
+    'score_transport_mem' : params.score_mem,
     'api_token': params.api_token,
     *:(params.upload ?: [:])
 ]
@@ -229,7 +250,7 @@ upload_params = [
 
 // Include all modules and pass params
 
-include { SongScoreDownload as dnldT; SongScoreDownload as dnldN } from './wfpr_modules/github.com/icgc-argo/nextflow-data-processing-utility-tools/song-score-download@2.6.1/main.nf' params(download_params)
+include { SongScoreDownload as dnldT; SongScoreDownload as dnldN } from './wfpr_modules/github.com/icgc-argo-workflows/nextflow-data-processing-utility-tools/song-score-download@2.9.0/main.nf' params(download_params)
 include { bqsr as bqsrT; bqsr as bqsrN } from './bqsr/bqsr'
 include { gatkMutect2 as Mutect2 } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-mutect2.4.1.8.0-2.2/tools/gatk-mutect2/gatk-mutect2' params(mutect2_params)
 include { getSecondaryFiles as getSec } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/helper-functions@1.0.1/main'
@@ -239,9 +260,9 @@ include { gatkMergeMutectStats as mergeMS } from './modules/raw.githubuserconten
 include { calculateContamination as calCont } from './calculate-contamination/calculate-contamination' params(calculateContamination_params)
 include { gatkFilterMutectCalls as filterMC } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-filter-mutect-calls.4.1.8.0-2.2/tools/gatk-filter-mutect-calls/gatk-filter-mutect-calls' params(filterMutectCalls_params)
 include { gatkSelectVariants as excIndel; gatkSelectVariants as selIndel } from './modules/raw.githubusercontent.com/icgc-argo/gatk-tools/gatk-select-variants.4.1.8.0-1.0/tools/gatk-select-variants/gatk-select-variants'
-include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/payload-gen-variant-calling@0.6.0/main" params(payloadGenVariantCall_params)
+include { payloadGenVariantCalling as pGenVarSnv; payloadGenVariantCalling as pGenVarIndel; payloadGenVariantCalling as pGenQc } from "./wfpr_modules/github.com/icgc-argo-workflows/data-processing-utility-tools/payload-gen-variant-calling@0.7.0/main" params(payloadGenVariantCall_params)
 include { prepMutect2Qc as prepQc } from './modules/raw.githubusercontent.com/icgc-argo/data-processing-utility-tools/prep-mutect2-qc.0.1.2.0/tools/prep-mutect2-qc/prep-mutect2-qc'
-include { SongScoreUpload as upSnv; SongScoreUpload as upIndel; SongScoreUpload as upQc } from './wfpr_modules/github.com/icgc-argo/nextflow-data-processing-utility-tools/song-score-upload@2.6.1/main.nf' params(upload_params)
+include { SongScoreUpload as upSnv; SongScoreUpload as upIndel; SongScoreUpload as upQc } from './wfpr_modules/github.com/icgc-argo-workflows/nextflow-data-processing-utility-tools/song-score-upload@2.9.3/main.nf' params(upload_params)
 include { cleanupWorkdir as cleanupM2; cleanupWorkdir as cleanupBqsr } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/cleanup-workdir@1.0.0/main'
 include { payloadAddUniformIds as pAddIdT; payloadAddUniformIds as pAddIdN } from './wfpr_modules/github.com/icgc-argo/data-processing-utility-tools/payload-add-uniform-ids@0.1.1/main'
 
