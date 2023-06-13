@@ -502,11 +502,11 @@ workflow M2 {
         // skip upload if in local_mode
         if (!local_mode) {
             // uploadVariant
-            upSnv(study_id, pGenVarSnv.out.payload, pGenVarSnv.out.files_to_upload)
-            upIndel(study_id, pGenVarIndel.out.payload, pGenVarIndel.out.files_to_upload)
+            upSnv(study_id, pGenVarSnv.out.payload, pGenVarSnv.out.files_to_upload, '')
+            upIndel(study_id, pGenVarIndel.out.payload, pGenVarIndel.out.files_to_upload, '')
 
             // upQc
-            upQc(study_id, pGenQc.out.payload, pGenQc.out.files_to_upload)
+            upQc(study_id, pGenQc.out.payload, pGenQc.out.files_to_upload, '')
         }
 
         // cleanup, skip cleanup when running in local mode
